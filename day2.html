@@ -1,0 +1,4265 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logic Unlocked: Day 2 - Python Study Jam | TinkerHub CEK</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Fira+Code:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                black: "#0A0A0A",
+                dark: "#111111",
+                card: "#161616",
+                neon: "#9DFF20",
+                neonHover: "#82E00B",
+                neonDark: "#1A3300",
+                grayText: "#A0A0A0",
+                border: "#2A2A2A",
+                windowBorder: "#444444",
+              },
+            },
+            fontFamily: {
+              heading: ["Anton", "Space Grotesk", "sans-serif"],
+              mono: ['"Fira Code"', "Consolas", "Courier New", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+
+      /* Custom Background Grid Pattern matching reference style */
+      body {
+        background-color: #0a0a0a;
+        background-image:
+          radial-gradient(rgba(157, 255, 32, 0.08) 1px, transparent 0),
+          linear-gradient(
+            to right,
+            rgba(255, 255, 255, 0.02) 1px,
+            transparent 1px
+          ),
+          linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.02) 1px,
+            transparent 1px
+          );
+        background-size:
+          24px 24px,
+          40px 40px,
+          40px 40px;
+        color: #eaeaea;
+        font-family: "Fira Code", monospace;
+        overflow: hidden;
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0a0a0a;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #222;
+        border: 1px solid #9dff20;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #9dff20;
+      }
+
+      /* ---------- SLIDE ENGINE ---------- */
+      .slide {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1.25rem 1rem 2rem;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(48px);
+        transition:
+          opacity 0.32s ease,
+          transform 0.32s ease,
+          visibility 0.32s;
+        pointer-events: none;
+      }
+      body.nav-back .slide {
+        transform: translateX(-48px);
+      }
+      .slide.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+      .slide-inner {
+        width: 100%;
+      }
+
+      /* Retro Window Frame Styling */
+      .window-frame {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background-color: #111111;
+        box-shadow:
+          0 10px 30px -10px rgba(0, 0, 0, 0.8),
+          0 0 15px rgba(157, 255, 32, 0.03);
+        transition: border-color 0.2s ease;
+      }
+      .window-frame:hover {
+        border-color: rgba(157, 255, 32, 0.4);
+      }
+
+      /* Code Box Styling */
+      .neon-code-box {
+        border: 1px solid #9dff20;
+        background-color: #050505;
+        position: relative;
+      }
+
+      /* Retro Button Hover Effects */
+      .btn-neon {
+        background-color: #9dff20;
+        color: #0a0a0a;
+        font-family: "Anton", sans-serif;
+        letter-spacing: 1px;
+        transition: all 0.15s ease-in-out;
+        box-shadow: 4px 4px 0px #000;
+      }
+      .btn-neon:hover {
+        background-color: #b1ff43;
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0px #000;
+      }
+      .btn-neon:active {
+        transform: translate(0px, 0px);
+        box-shadow: 2px 2px 0px #000;
+      }
+
+      .btn-outline-neon {
+        border: 1px solid #9dff20;
+        color: #9dff20;
+        transition: all 0.15s ease;
+      }
+      .btn-outline-neon:hover {
+        background: rgba(157, 255, 32, 0.1);
+        box-shadow: 0 0 10px rgba(157, 255, 32, 0.2);
+      }
+
+      .tag-badge {
+        font-family: "Fira Code", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+        padding: 2px 8px;
+        border: 1px solid #9dff20;
+        color: #9dff20;
+        background: rgba(157, 255, 32, 0.05);
+        white-space: nowrap;
+      }
+
+      canvas {
+        image-rendering: pixelated;
+      }
+      canvas:focus {
+        outline: 2px solid #9dff20;
+        outline-offset: 2px;
+      }
+
+      /* ---------- SLIDE 13 : CAT ON THE PAGE BACKGROUND ---------- */
+      .slide[data-index="13"] {
+        padding: 0;
+        overflow: hidden;
+      }
+      .ck-full {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ck-full .ck-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .ck-canvas {
+        display: block;
+        image-rendering: auto;
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+      }
+      .ck-svg {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+      }
+      /* Fallback for when pixels can't be read (e.g. double-clicking the file):
+         key the video with an SVG filter instead */
+      .ck-full.ck-fallback .ck-canvas {
+        display: none;
+      }
+      .ck-full.ck-fallback .ck-video {
+        /* box must match the video exactly: the filter would otherwise turn
+           transparent letterbox areas into opaque black */
+        position: static;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        opacity: 1;
+        filter: url(#ck-key);
+      }
+      /* ---------- CHROMA KEY EDITOR POPUP (slide 13) ---------- */
+      .ck-editor {
+        position: fixed;
+        top: 100px;
+        right: 18px;
+        z-index: 60;
+        width: 292px;
+        background: rgba(17, 17, 17, 0.96);
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(6px);
+        font-family: "Fira Code", Consolas, "Courier New", monospace;
+        color: #e8eaef;
+      }
+      .ck-editor[hidden] {
+        display: none;
+      }
+      .ck-editor-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-bottom: 1px solid #232323;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        color: #9dff20;
+      }
+      .ck-editor-x {
+        background: none;
+        border: 0;
+        color: #98a0ae;
+        cursor: pointer;
+        font-size: 13px;
+        line-height: 1;
+        padding: 2px 4px;
+      }
+      .ck-editor-x:hover {
+        color: #9dff20;
+      }
+      .ck-editor-body {
+        padding: 10px 12px 12px;
+        display: grid;
+        /* the body scrolls, and a scroll container sizes its auto tracks to
+           max-content — pinning the column keeps the rows inside the panel */
+        grid-template-columns: minmax(0, 1fr);
+        gap: 9px;
+        /* keeps the taller panel inside short windows */
+        max-height: calc(100vh - 170px);
+        overflow-y: auto;
+      }
+      .ck-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+      }
+      /* inputs carry an intrinsic minimum width (a number field wants ~20
+         characters); let every row item shrink to the space it is given */
+      .ck-row > * {
+        min-width: 0;
+      }
+      .ck-row > label {
+        flex: 0 0 76px;
+        color: #98a0ae;
+        letter-spacing: 0.04em;
+      }
+      .ck-row input[type="range"] {
+        flex: 1;
+        min-width: 60px;
+        accent-color: #9dff20;
+      }
+      .ck-row input[type="color"] {
+        width: 40px;
+        height: 26px;
+        padding: 2px;
+        cursor: pointer;
+        background: #242832;
+        border: 1px solid #2a2a2a;
+        border-radius: 6px;
+      }
+      .ck-row output {
+        width: 30px;
+        text-align: right;
+        color: #98a0ae;
+        font-size: 10px;
+      }
+      .ck-row input[type="number"] {
+        flex: 0 0 60px;
+        padding: 4px 6px;
+        font: inherit;
+        font-size: 11px;
+        color: #e8eaef;
+        background: #242832;
+        border: 1px solid #2a2a2a;
+        border-radius: 6px;
+      }
+      .ck-row input[type="number"]:focus {
+        outline: 1px solid #9dff20;
+      }
+      .ck-row select {
+        flex: 1;
+        min-width: 60px;
+        padding: 4px 6px;
+        font: inherit;
+        font-size: 11px;
+        color: #e8eaef;
+        background: #242832;
+        border: 1px solid #2a2a2a;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      /* the flex display above would beat the browser's [hidden] rule */
+      .ck-row[hidden] {
+        display: none;
+      }
+      #ck-fx-attack-v,
+      #ck-fx-release-v,
+      #ck-shake-amt-v,
+      #ck-shake-ms-v {
+        width: 44px;
+      }
+      .ck-row input[type="color"]:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      /* the delay reads out in both units at once */
+      #ck-delay-v {
+        width: 104px;
+      }
+      #ck-skip-v,
+      #ck-end-v {
+        width: 46px;
+      }
+      .ck-row input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+        accent-color: #9dff20;
+        cursor: pointer;
+      }
+      .ck-note {
+        font-size: 10px;
+        color: #6f7785;
+        letter-spacing: 0.02em;
+      }
+      /* divider between the key controls and the metronome */
+      .ck-sep {
+        height: 1px;
+        margin: 2px 0;
+        background: #232323;
+      }
+      /* metronome beat lamp */
+      .ck-beat {
+        flex: 0 0 auto;
+        margin-left: auto; /* sits at the right end of the row */
+        width: 9px;
+        height: 9px;
+        border-radius: 9999px;
+        background: #23262c;
+        border: 1px solid #2a2a2a;
+        transition: background 0.06s linear;
+      }
+      .ck-beat.on {
+        background: #9dff20;
+        border-color: #9dff20;
+        box-shadow: 0 0 10px rgba(157, 255, 32, 0.6);
+      }
+      .ck-btn {
+        font: inherit;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: #d6dae2;
+        background: #242832;
+        border: 1px solid #2a2a2a;
+        border-radius: 6px;
+        padding: 5px 8px;
+        cursor: pointer;
+      }
+      .ck-btn:hover,
+      .ck-btn.active {
+        color: #9dff20;
+        border-color: #9dff20;
+      }
+      .ck-btn-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 7px;
+        line-height: 1;
+      }
+      /* metronome muted: grey instead of neon, because silence is the state */
+      #ck-metro-mute.muted {
+        color: #6f7785;
+      }
+      #ck-metro-mute.muted:hover {
+        color: #98a0ae;
+      }
+      .ck-editor-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 2px;
+      }
+      .ck-hint {
+        font-size: 10px;
+        color: #6f7785;
+        letter-spacing: 0.02em;
+      }
+      /* eyedropper mode: crosshair over the cat */
+      .ck-full.picking {
+        cursor: crosshair;
+      }
+
+      /* volume pill, sitting left of the KEY EDITOR button on slide 13:
+         the speaker mutes, the chevron reveals the slider */
+      .ck-vol {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        padding: 3px 5px;
+        border: 1px solid #2a2a2a;
+        border-radius: 4px;
+        background: rgba(17, 17, 17, 0.8);
+        backdrop-filter: blur(4px);
+        font-family: "Fira Code", Consolas, monospace;
+        font-size: 11px;
+        color: #d1d5db;
+      }
+      .ck-vol-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        background: none;
+        border: 0;
+        border-radius: 3px;
+        color: #9dff20;
+        font-size: 10px;
+        cursor: pointer;
+      }
+      .ck-vol-btn:hover {
+        background: rgba(157, 255, 32, 0.12);
+      }
+      /* the slider stays shut until the chevron asks for it, and grows to the
+         left so the buttons never move */
+      .ck-vol-slider {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        max-width: 0;
+        padding-right: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition:
+          max-width 0.22s ease,
+          padding 0.22s ease,
+          opacity 0.18s ease;
+      }
+      .ck-vol.open .ck-vol-slider {
+        max-width: 142px;
+        padding-right: 6px;
+        opacity: 1;
+      }
+      .ck-vol-slider input[type="range"] {
+        width: 92px;
+        cursor: pointer;
+        accent-color: #9dff20;
+      }
+      .ck-vol-slider output {
+        width: 32px;
+        text-align: right;
+        font-size: 10px;
+        color: #a0a0a0;
+      }
+      /* muted (or at zero) reads grey instead of neon */
+      .ck-vol.silent #ck-vol-mute {
+        color: #98a0ae;
+      }
+
+      /* ---------- BEAT FX : a light that hits the whole site ---------- */
+      /* Sits above the slides, header and footer, but below the key editor
+         panel. Screen blending is what makes it read as light rather than as a
+         coloured sheet dropped over the page. */
+      .beat-fx {
+        position: fixed;
+        inset: 0;
+        z-index: 55;
+        pointer-events: none;
+        opacity: 0;
+        background: #9dff20;
+        mix-blend-mode: screen;
+      }
+
+      /* ---------- SLIDE 13 : CAPTIONS OVER THE CAT ---------- */
+      .ck-text {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        pointer-events: none;
+        font-family: "Anton", "Space Grotesk", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+      }
+      .ck-cap {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        display: grid;
+        gap: 0.4em;
+        max-width: 46%;
+      }
+      .ck-cap-right {
+        right: clamp(1.75rem, 9vw, 11rem);
+        justify-items: end;
+        text-align: right;
+      }
+      .ck-cap-left {
+        left: clamp(1.75rem, 9vw, 11rem);
+        justify-items: start;
+        text-align: left;
+      }
+      .ck-line {
+        opacity: 0;
+        line-height: 1.05;
+        color: #f2f4f7;
+        /* the colour behind the cat is up to the key editor, so keep the
+           captions legible on any backdrop */
+        text-shadow:
+          0 2px 24px rgba(0, 0, 0, 0.75),
+          0 0 2px rgba(0, 0, 0, 0.9);
+        will-change: opacity, transform;
+      }
+      .ck-cap-right .ck-line:nth-child(1) {
+        font-size: clamp(1.7rem, 4.2vw, 3.6rem);
+      }
+      .ck-cap-right .ck-line:nth-child(2) {
+        font-size: clamp(1.1rem, 2.6vw, 2.2rem);
+        color: #9dff20;
+      }
+      .ck-cap-left .ck-line:nth-child(1) {
+        font-size: clamp(2.1rem, 5.6vw, 4.8rem);
+      }
+      .ck-cap-left .ck-line:nth-child(2) {
+        font-size: clamp(1.4rem, 3.6vw, 3rem);
+        color: #9dff20;
+      }
+      .ck-cap-left .ck-line:nth-child(3) {
+        font-size: clamp(1.6rem, 4.2vw, 3.6rem);
+        color: #9dff20;
+        text-shadow:
+          0 0 30px rgba(157, 255, 32, 0.35),
+          0 2px 24px rgba(0, 0, 0, 0.75);
+      }
+      .ck-cap-left .ck-line:nth-child(4) {
+        font-size: clamp(0.85rem, 1.9vw, 1.5rem);
+        color: #b9c0cc;
+        letter-spacing: 0.16em;
+      }
+
+      /* Slide dots */
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: #2a2a2a;
+        border: 1px solid #3a3a3a;
+        transition: all 0.2s ease;
+        flex: 0 0 auto;
+      }
+      .dot:hover {
+        background: #555;
+      }
+      .dot.active {
+        background: #9dff20;
+        border-color: #9dff20;
+        width: 20px;
+      }
+
+      /* No-animation for reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        .slide {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="h-full flex flex-col selection:bg-brand-neon selection:text-black"
+  >
+    <!-- ================= TOP NAVIGATION / HEADER BAR ================= -->
+    <header
+      class="relative shrink-0 z-50 bg-brand-dark/90 backdrop-blur border-b border-brand-border px-4 py-2.5"
+    >
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <div class="w-3 h-3 rounded-full bg-red-500 inline-block"></div>
+          <div class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></div>
+          <div class="w-3 h-3 rounded-full bg-green-500 inline-block"></div>
+          <span
+            class="font-heading text-base sm:text-xl tracking-wider text-white ml-1 sm:ml-2"
+            >SYNTAX TO SOLUTIONS // DAY 2</span
+          >
+          <span class="hidden md:inline-block tag-badge">TINKERHUB CEK</span>
+        </div>
+
+        <nav
+          class="hidden lg:flex items-center space-x-5 text-[11px] uppercase tracking-widest text-gray-400"
+        >
+          <button
+            onclick="goToSlide(2)"
+            class="hover:text-brand-neon transition"
+          >
+            If-Else
+          </button>
+          <button
+            onclick="goToSlide(4)"
+            class="hover:text-brand-neon transition"
+          >
+            Loops
+          </button>
+          <button
+            onclick="goToSlide(6)"
+            class="hover:text-brand-neon transition"
+          >
+            Functions
+          </button>
+          <button
+            onclick="goToSlide(8)"
+            class="hover:text-brand-neon transition text-brand-neon"
+          >
+            Recursion ⚠️
+          </button>
+          <button
+            onclick="goToSlide(10)"
+            class="hover:text-brand-neon transition"
+          >
+            Workout
+          </button>
+          <button
+            onclick="goToSlide(11)"
+            class="hover:text-brand-neon transition"
+          >
+            Projects
+          </button>
+        </nav>
+
+        <div class="flex items-center space-x-3">
+          <span
+            id="quiz-score-badge"
+            class="tag-badge bg-black text-brand-neon border-brand-neon font-bold"
+          >
+            SCORE: <span id="user-score">0</span> / 200
+          </span>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="absolute bottom-0 left-0 w-full h-[2px] bg-brand-border/40">
+        <div
+          id="progress-bar"
+          class="h-full bg-brand-neon transition-all duration-300"
+          style="width: 0%"
+        ></div>
+      </div>
+    </header>
+
+    <!-- ================= DECK ================= -->
+    <main id="deck" class="relative flex-1 overflow-hidden">
+      <!-- ============ SLIDE 0 : HERO ============ -->
+      <section class="slide" data-index="0">
+        <div class="slide-inner max-w-7xl mx-auto h-full flex items-center">
+          <div
+            class="window-frame rounded-none p-6 md:p-10 relative overflow-hidden w-full"
+          >
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div class="lg:col-span-7 space-y-6">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="tag-badge">PYTHON STUDY JAM</span>
+                  <span
+                    class="bg-brand-neon text-black font-bold text-xs px-2 py-0.5 font-mono"
+                    >DAY 02 / 02</span
+                  >
+                  <span class="text-xs text-gray-400 font-mono"
+                    >// ADVANCED LOGIC & STRUCTURE</span
+                  >
+                </div>
+
+                <h1
+                  class="font-heading text-5xl sm:text-7xl lg:text-8xl text-white leading-none tracking-tight"
+                >
+                  LOGIC<br /><span class="text-brand-neon">UNLOCKED</span>
+                </h1>
+
+                <p
+                  class="text-gray-300 font-mono text-sm sm:text-base leading-relaxed border-l-2 border-brand-neon pl-4"
+                >
+                  Mastering Control Flow, Loops, Functional Decomposition, and
+                  the mind-bending mechanics of
+                  <strong
+                    class="text-white bg-red-950/60 px-1 border border-red-500"
+                    >RECURSION</strong
+                  >. Includes hands-on workouts and interactive project builds.
+                </p>
+
+                <div class="flex flex-wrap gap-4 pt-2">
+                  <button
+                    onclick="nextSlide()"
+                    class="btn-neon px-6 py-3 text-lg flex items-center gap-2"
+                  >
+                    <span>START LEARNING</span>
+                    <i class="fa-solid font-bold fa-arrow-right text-sm"></i>
+                  </button>
+                  <button
+                    onclick="goToSlide(11)"
+                    class="btn-outline-neon px-6 py-3 text-sm font-bold flex items-center gap-2"
+                  >
+                    <i class="fa-solid fa-code"></i>
+                    <span>JUMP TO PROJECTS</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Pixel Snake Interactive Canvas Frame -->
+              <div class="lg:col-span-5">
+                <div class="window-frame bg-black border-brand-windowBorder">
+                  <div
+                    class="bg-brand-card px-4 py-2 border-b border-brand-border flex items-center justify-between text-xs text-gray-400"
+                  >
+                    <span class="flex items-center gap-2">
+                      <i class="fa-solid fa-terminal text-brand-neon"></i>
+                      snake_simulator.py
+                    </span>
+                    <span class="text-emerald-400 text-[10px]">● RUNNING</span>
+                  </div>
+                  <div
+                    class="p-4 flex flex-col items-center justify-center relative min-h-[260px]"
+                  >
+                    <canvas
+                      id="snakeCanvas"
+                      tabindex="0"
+                      width="300"
+                      height="200"
+                      class="border border-brand-border bg-black cursor-pointer"
+                    ></canvas>
+                    <div
+                      class="mt-3 text-[11px] text-gray-400 font-mono flex flex-wrap items-center justify-center gap-3 text-center"
+                    >
+                      <span
+                        >CLICK + USE
+                        <kbd class="bg-gray-800 text-brand-neon px-1 rounded"
+                          >ARROWS</kbd
+                        ></span
+                      >
+                      <span
+                        >SCORE:
+                        <span id="snake-game-score" class="text-brand-neon"
+                          >0</span
+                        ></span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 1 : ROADMAP ============ -->
+      <section class="slide" data-index="1">
+        <div class="slide-inner max-w-6xl mx-auto space-y-6">
+          <div class="text-center space-y-2">
+            <span class="tag-badge">DAY 02 ROADMAP</span>
+            <h2 class="font-heading text-4xl sm:text-6xl text-white">
+              WHAT WE'LL COVER
+            </h2>
+            <p class="text-gray-400 font-mono text-xs">
+              06 MODULES · 04 QUIZZES · 03 PROJECTS · 200 PTS
+            </p>
+          </div>
+
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 font-mono"
+          >
+            <button
+              onclick="goToSlide(2)"
+              class="text-left bg-brand-card p-5 border border-brand-border hover:border-brand-neon transition group"
+            >
+              <span class="text-brand-neon font-heading text-3xl block mb-1"
+                >01</span
+              >
+              <span
+                class="text-white font-bold block text-sm mb-1 group-hover:text-brand-neon transition"
+                >DECISION MAKING</span
+              >
+              <span class="text-gray-400 text-[11px] leading-relaxed"
+                >if / elif / else · nested conditions · short-circuit
+                evaluation</span
+              >
+            </button>
+            <button
+              onclick="goToSlide(4)"
+              class="text-left bg-brand-card p-5 border border-brand-border hover:border-brand-neon transition group"
+            >
+              <span class="text-brand-neon font-heading text-3xl block mb-1"
+                >02</span
+              >
+              <span
+                class="text-white font-bold block text-sm mb-1 group-hover:text-brand-neon transition"
+                >ITERATION</span
+              >
+              <span class="text-gray-400 text-[11px] leading-relaxed"
+                >for loops · while loops · nested patterns · break /
+                continue</span
+              >
+            </button>
+            <button
+              onclick="goToSlide(6)"
+              class="text-left bg-brand-card p-5 border border-brand-border hover:border-brand-neon transition group"
+            >
+              <span class="text-brand-neon font-heading text-3xl block mb-1"
+                >03</span
+              >
+              <span
+                class="text-white font-bold block text-sm mb-1 group-hover:text-brand-neon transition"
+                >MODULARITY</span
+              >
+              <span class="text-gray-400 text-[11px] leading-relaxed"
+                >def · parameters vs arguments · return values · LEGB
+                scope</span
+              >
+            </button>
+            <button
+              onclick="goToSlide(8)"
+              class="text-left bg-red-950/40 p-5 border border-red-500/50 hover:border-red-400 transition group"
+            >
+              <span class="text-red-400 font-heading text-3xl block mb-1"
+                >04 ⚠️</span
+              >
+              <span
+                class="text-white font-bold block text-sm mb-1 group-hover:text-red-300 transition"
+                >RECURSION</span
+              >
+              <span class="text-gray-400 text-[11px] leading-relaxed"
+                >base case · recursive step · call stack unwinding</span
+              >
+            </button>
+            <button
+              onclick="goToSlide(10)"
+              class="text-left bg-brand-card p-5 border border-brand-border hover:border-brand-neon transition group"
+            >
+              <span class="text-brand-neon font-heading text-3xl block mb-1"
+                >05</span
+              >
+              <span
+                class="text-white font-bold block text-sm mb-1 group-hover:text-brand-neon transition"
+                >WORKOUT</span
+              >
+              <span class="text-gray-400 text-[11px] leading-relaxed"
+                >prime checker · palindrome · algorithm warm-ups</span
+              >
+            </button>
+            <button
+              onclick="goToSlide(11)"
+              class="text-left bg-brand-card p-5 border border-brand-border hover:border-brand-neon transition group"
+            >
+              <span class="text-brand-neon font-heading text-3xl block mb-1"
+                >06</span
+              >
+              <span
+                class="text-white font-bold block text-sm mb-1 group-hover:text-brand-neon transition"
+                >PROJECTS</span
+              >
+              <span class="text-gray-400 text-[11px] leading-relaxed"
+                >calculator · guessing game · student database CLI</span
+              >
+            </button>
+          </div>
+
+          <p class="text-center text-[11px] text-gray-500 font-mono">
+            USE <kbd class="bg-gray-800 text-brand-neon px-1 rounded">←</kbd>
+            <kbd class="bg-gray-800 text-brand-neon px-1 rounded">→</kbd> ARROW
+            KEYS OR THE BUTTONS BELOW TO NAVIGATE
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 2 : IF-ELSE ============ -->
+      <section class="slide" data-index="2">
+        <div class="slide-inner max-w-6xl mx-auto space-y-5">
+          <div
+            class="flex items-center justify-between border-b border-brand-border pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="tag-badge">CONCEPT 01</span>
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                DECISION MAKING: IF-ELSE & NESTED LOGIC
+              </h2>
+            </div>
+            <span
+              class="text-xs text-brand-neon hidden sm:inline-block font-mono"
+              >&lt;CONTROL_FLOW&gt;</span
+            >
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div
+              class="lg:col-span-6 space-y-4 font-mono text-sm text-gray-300"
+            >
+              <p>
+                Programs need to make choices based on data. Python uses
+                <code class="text-brand-neon">if</code>,
+                <code class="text-brand-neon">elif</code>, and
+                <code class="text-brand-neon">else</code> keywords to construct
+                decision paths.
+              </p>
+
+              <div class="window-frame p-4 space-y-3 bg-brand-dark">
+                <div
+                  class="text-xs font-bold text-brand-neon uppercase tracking-wider flex items-center gap-2"
+                >
+                  <i class="fa-solid fa-diagram-project"></i> Decision Tree
+                  Architecture
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+                  <div class="p-2 border border-brand-border bg-black">
+                    <span class="text-brand-neon font-bold block"
+                      >1. Condition</span
+                    >
+                    True / False
+                  </div>
+                  <div class="p-2 border border-brand-border bg-black">
+                    <span class="text-emerald-400 font-bold block"
+                      >2. Block</span
+                    >
+                    Runs if True
+                  </div>
+                  <div class="p-2 border border-brand-border bg-black">
+                    <span class="text-amber-400 font-bold block"
+                      >3. Fallback</span
+                    >
+                    elif / else
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="border-l-2 border-brand-neon pl-3 py-1 text-xs text-gray-400 space-y-1"
+              >
+                <p>
+                  <strong class="text-white">Short-Circuit Evaluation:</strong>
+                </p>
+                <p>
+                  • In <code class="text-brand-neon">A and B</code>, if A is
+                  False, B is never evaluated.
+                </p>
+                <p>
+                  • In <code class="text-brand-neon">A or B</code>, if A is
+                  True, B is skipped immediately.
+                </p>
+              </div>
+            </div>
+
+            <div class="lg:col-span-6">
+              <div class="neon-code-box p-4 font-mono text-xs">
+                <div
+                  class="flex justify-between items-center text-brand-neon border-b border-brand-neon/30 pb-2 mb-3"
+                >
+                  <span class="font-bold">// nested_decision.py</span>
+                  <span class="text-[10px] text-gray-400">PYTHON 3.11</span>
+                </div>
+                <pre
+                  class="text-gray-200 leading-relaxed overflow-x-auto"
+                ><span class="text-purple-400">age</span> = <span class="text-emerald-300">19</span>
+<span class="text-purple-400">has_license</span> = <span class="text-amber-300">True</span>
+
+<span class="text-brand-neon font-bold">if</span> age &gt;= <span class="text-emerald-300">18</span>:
+    <span class="text-gray-500"># Nested condition inside primary block</span>
+    <span class="text-brand-neon font-bold">if</span> has_license:
+        <span class="text-amber-200">print</span>(<span class="text-emerald-300">"Eligible to drive vehicle."</span>)
+    <span class="text-brand-neon font-bold">else</span>:
+        <span class="text-amber-200">print</span>(<span class="text-emerald-300">"Age valid, but driver's license required!"</span>)
+<span class="text-brand-neon font-bold">else</span>:
+    <span class="text-amber-200">print</span>(<span class="text-emerald-300">"Underage. Driving restricted."</span>)</pre>
+                <div
+                  class="mt-4 pt-3 border-t border-brand-border bg-black/60 p-2 text-emerald-400"
+                >
+                  <strong>Output:</strong> Eligible to drive vehicle.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              onclick="nextSlide()"
+              class="btn-outline-neon px-5 py-2 text-xs font-bold flex items-center gap-2"
+            >
+              TAKE QUIZ 01 <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 3 : QUIZ 01 ============ -->
+      <section class="slide" data-index="3">
+        <div
+          class="slide-inner max-w-4xl mx-auto h-full flex flex-col justify-center space-y-5"
+        >
+          <div
+            class="flex items-center justify-between border-b border-brand-border pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="tag-badge">QUIZ 01</span>
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                DECISION LOGIC CHECK
+              </h2>
+            </div>
+            <span class="text-xs text-gray-400 font-mono">+50 PTS</span>
+          </div>
+
+          <div class="window-frame p-6 bg-brand-card space-y-4">
+            <p class="text-sm font-mono text-gray-200">
+              What will be the output of the following code snippet?
+            </p>
+            <div class="neon-code-box p-3 text-xs">
+              <pre class="text-gray-300">
+x = 10
+if x &gt; 15:
+    print("A")
+elif x &gt; 5 and x &lt; 12:
+    print("B")
+else:
+    print("C")</pre
+              >
+            </div>
+            <div
+              class="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs"
+              id="q1-options"
+            >
+              <button
+                data-correct="false"
+                onclick="checkQuiz(1, 'A', false, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                A) "A"
+              </button>
+              <button
+                data-correct="true"
+                onclick="checkQuiz(1, 'B', true, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                B) "B"
+              </button>
+              <button
+                data-correct="false"
+                onclick="checkQuiz(1, 'C', false, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                C) "C"
+              </button>
+            </div>
+            <div
+              id="q1-feedback"
+              class="hidden text-xs font-mono p-3 border rounded"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 4 : LOOPS ============ -->
+      <section class="slide" data-index="4">
+        <div class="slide-inner max-w-6xl mx-auto space-y-5">
+          <div
+            class="flex items-center justify-between border-b border-brand-border pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="tag-badge">CONCEPT 02</span>
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                LOOPS & REPETITION MECHANICS
+              </h2>
+            </div>
+            <span
+              class="text-xs text-brand-neon hidden sm:inline-block font-mono"
+              >&lt;ITERATION&gt;</span
+            >
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div
+              class="lg:col-span-6 space-y-4 text-sm font-mono text-gray-300"
+            >
+              <p>
+                Loops allow executing a block of code repeatedly until a
+                condition changes or a sequence is exhausted.
+              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div
+                  class="border border-brand-border p-3 bg-brand-dark space-y-2"
+                >
+                  <span class="text-brand-neon font-bold block"
+                    >// FOR LOOP</span
+                  >
+                  <p class="text-gray-400">
+                    Best for iterating over known sequences or predefined range
+                    limits.
+                  </p>
+                  <code class="text-emerald-300 block bg-black p-2"
+                    >for i in range(1, 5, 1):</code
+                  >
+                  <span class="text-[10px] text-gray-500"
+                    >range(start, stop, step)</span
+                  >
+                </div>
+                <div
+                  class="border border-brand-border p-3 bg-brand-dark space-y-2"
+                >
+                  <span class="text-brand-neon font-bold block"
+                    >// WHILE LOOP</span
+                  >
+                  <p class="text-gray-400">
+                    Executes indefinitely as long as condition evaluates to
+                    True.
+                  </p>
+                  <code class="text-emerald-300 block bg-black p-2"
+                    >while count &lt; 5:</code
+                  >
+                  <span class="text-[10px] text-gray-500"
+                    >Requires manual state updates!</span
+                  >
+                </div>
+              </div>
+
+              <div class="window-frame p-3 bg-black space-y-2 text-xs">
+                <span class="text-brand-neon font-bold block"
+                  >CONTROL KEYWORDS:</span
+                >
+                <p>
+                  • <code class="text-white">break</code>: Immediately
+                  terminates loop execution.
+                </p>
+                <p>
+                  • <code class="text-white">continue</code>: Skips current
+                  iteration & moves to next.
+                </p>
+                <p>
+                  • <code class="text-white">pass</code>: Placeholder statement
+                  (does nothing).
+                </p>
+              </div>
+            </div>
+
+            <div class="lg:col-span-6">
+              <div class="neon-code-box p-4 font-mono text-xs">
+                <div
+                  class="flex justify-between items-center text-brand-neon border-b border-brand-neon/30 pb-2 mb-3"
+                >
+                  <span class="font-bold">// pattern_nested.py</span>
+                  <span class="text-[10px] text-gray-400">STAR PATTERN</span>
+                </div>
+                <pre
+                  class="text-gray-200 leading-relaxed"
+                ><span class="text-purple-400">rows</span> = <span class="text-emerald-300">4</span>
+
+<span class="text-brand-neon font-bold">for</span> i <span class="text-brand-neon font-bold">in</span> <span class="text-amber-200">range</span>(<span class="text-emerald-300">1</span>, rows + <span class="text-emerald-300">1</span>):
+    <span class="text-brand-neon font-bold">for</span> j <span class="text-brand-neon font-bold">in</span> <span class="text-amber-200">range</span>(i):
+        <span class="text-amber-200">print</span>(<span class="text-emerald-300">"*"</span>, end=<span class="text-emerald-300">" "</span>)
+    <span class="text-amber-200">print</span>() <span class="text-gray-500"># Newline after inner loop completion</span></pre>
+
+                <div
+                  class="mt-4 pt-2 border-t border-brand-border bg-black/60 p-2 font-mono text-brand-neon"
+                >
+                  <strong>Output:</strong><br />
+                  * <br />
+                  * * <br />
+                  * * * <br />
+                  * * * *
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              onclick="nextSlide()"
+              class="btn-outline-neon px-5 py-2 text-xs font-bold flex items-center gap-2"
+            >
+              TAKE QUIZ 02 <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 5 : QUIZ 02 ============ -->
+      <section class="slide" data-index="5">
+        <div
+          class="slide-inner max-w-4xl mx-auto h-full flex flex-col justify-center space-y-5"
+        >
+          <div
+            class="flex items-center justify-between border-b border-brand-border pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="tag-badge">QUIZ 02</span>
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                RANGE & LOOP PREDICTION
+              </h2>
+            </div>
+            <span class="text-xs text-gray-400 font-mono">+50 PTS</span>
+          </div>
+
+          <div class="window-frame p-6 bg-brand-card space-y-4">
+            <p class="text-sm font-mono text-gray-200">
+              What is printed by:
+              <code class="text-brand-neon">list(range(2, 10, 3))</code>?
+            </p>
+            <div
+              class="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs"
+            >
+              <button
+                data-correct="false"
+                onclick="checkQuiz(2, 'A', false, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                A) [2, 3, 4, 5, 6, 7, 8, 9, 10]
+              </button>
+              <button
+                data-correct="true"
+                onclick="checkQuiz(2, 'B', true, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                B) [2, 5, 8]
+              </button>
+              <button
+                data-correct="false"
+                onclick="checkQuiz(2, 'C', false, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                C) [2, 5, 8, 11]
+              </button>
+            </div>
+            <div
+              id="q2-feedback"
+              class="hidden text-xs font-mono p-3 border rounded"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 6 : FUNCTIONS ============ -->
+      <section class="slide" data-index="6">
+        <div class="slide-inner max-w-6xl mx-auto space-y-5">
+          <div
+            class="flex items-center justify-between border-b border-brand-border pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="tag-badge">CONCEPT 03</span>
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                FUNCTIONS & VARIABLE SCOPE
+              </h2>
+            </div>
+            <span
+              class="text-xs text-brand-neon hidden sm:inline-block font-mono"
+              >&lt;MODULARITY&gt;</span
+            >
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div
+              class="lg:col-span-6 space-y-4 font-mono text-sm text-gray-300"
+            >
+              <p>
+                Functions are reusable blocks of code defined using
+                <code class="text-brand-neon">def</code>. They reduce
+                duplication and build modular architecture.
+              </p>
+
+              <div class="window-frame p-4 bg-brand-dark space-y-3 text-xs">
+                <span class="text-brand-neon font-bold block"
+                  >KEY FUNCTION CONCEPTS:</span
+                >
+                <p>
+                  • <strong>Parameters vs Arguments:</strong> Placeholders in
+                  definition vs actual values passed during invocation.
+                </p>
+                <p>
+                  • <strong>Return Value:</strong> Sends data back to caller.
+                  Without an explicit return, functions yield
+                  <code class="text-purple-400">None</code>.
+                </p>
+                <p>
+                  • <strong>Scope Rules (LEGB):</strong> Local -&gt; Enclosing
+                  -&gt; Global -&gt; Built-in.
+                </p>
+              </div>
+
+              <div
+                class="border-l-2 border-brand-neon pl-3 py-1 text-xs text-gray-400"
+              >
+                <strong class="text-white">*args & **kwargs:</strong><br />
+                <code class="text-brand-neon">*args</code> accepts dynamic
+                positional arguments as a tuple.<br />
+                <code class="text-brand-neon">**kwargs</code> accepts dynamic
+                keyword arguments as a dictionary.
+              </div>
+            </div>
+
+            <div class="lg:col-span-6">
+              <div class="neon-code-box p-4 font-mono text-xs">
+                <div
+                  class="flex justify-between items-center text-brand-neon border-b border-brand-neon/30 pb-2 mb-3"
+                >
+                  <span class="font-bold">// function_demo.py</span>
+                  <span class="text-[10px] text-gray-400">SCOPES & ARGS</span>
+                </div>
+                <pre
+                  class="text-gray-200 leading-relaxed"
+                ><span class="text-purple-400">tax_rate</span> = <span class="text-emerald-300">0.18</span> <span class="text-gray-500"># Global Variable</span>
+
+<span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">calculate_total</span>(price, discount=<span class="text-emerald-300">0</span>):
+    <span class="text-gray-500"># Local variable calculation</span>
+    final_price = (price - discount) * (<span class="text-emerald-300">1</span> + tax_rate)
+    <span class="text-brand-neon font-bold">return</span> <span class="text-amber-200">round</span>(final_price, <span class="text-emerald-300">2</span>)
+
+total = calculate_total(<span class="text-emerald-300">100</span>, discount=<span class="text-emerald-300">10</span>)
+<span class="text-amber-200">print</span>(<span class="text-emerald-300">f"Final Amount: ${total}"</span>)</pre>
+                <div
+                  class="mt-4 pt-2 border-t border-brand-border bg-black/60 p-2 text-emerald-400"
+                >
+                  <strong>Output:</strong> Final Amount: $106.2
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              onclick="nextSlide()"
+              class="btn-outline-neon px-5 py-2 text-xs font-bold flex items-center gap-2"
+            >
+              TAKE QUIZ 03 <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 7 : QUIZ 03 ============ -->
+      <section class="slide" data-index="7">
+        <div
+          class="slide-inner max-w-4xl mx-auto h-full flex flex-col justify-center space-y-5"
+        >
+          <div
+            class="flex items-center justify-between border-b border-brand-border pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="tag-badge">QUIZ 03</span>
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                FUNCTION SCOPE
+              </h2>
+            </div>
+            <span class="text-xs text-gray-400 font-mono">+50 PTS</span>
+          </div>
+
+          <div class="window-frame p-6 bg-brand-card space-y-4">
+            <p class="text-sm font-mono text-gray-200">
+              What happens when attempting to print a local variable outside its
+              function?
+            </p>
+            <div
+              class="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs"
+            >
+              <button
+                data-correct="false"
+                onclick="checkQuiz(3, 'A', false, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                A) Prints None
+              </button>
+              <button
+                data-correct="true"
+                onclick="checkQuiz(3, 'B', true, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                B) Raises NameError
+              </button>
+              <button
+                data-correct="false"
+                onclick="checkQuiz(3, 'C', false, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                C) Prints 0
+              </button>
+            </div>
+            <div
+              id="q3-feedback"
+              class="hidden text-xs font-mono p-3 border rounded"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 8 : RECURSION THEORY ============ -->
+      <section class="slide" data-index="8">
+        <div class="slide-inner max-w-6xl mx-auto space-y-5">
+          <div
+            class="flex items-center justify-between border-b border-red-500/50 pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span
+                class="bg-red-600 text-white font-bold text-xs px-2 py-0.5 font-mono"
+                >CRITICAL ⚠️</span
+              >
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                RECURSION: SELF-REFERENTIAL LOGIC
+              </h2>
+            </div>
+            <span class="text-xs text-red-400 font-mono hidden sm:inline-block"
+              >&lt;CALL_STACK_MECHANICS&gt;</span
+            >
+          </div>
+
+          <div
+            class="p-3 bg-red-950/30 border border-red-500/40 text-red-200 font-mono text-xs flex items-center justify-between"
+          >
+            <span
+              >"To understand recursion, you must first understand
+              recursion."</span
+            >
+            <i class="fa-solid fa-arrows-rotate text-red-400 animate-spin"></i>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <div
+              class="lg:col-span-6 space-y-4 font-mono text-sm text-gray-300"
+            >
+              <p>
+                Recursion is a technique where a function calls itself to break
+                down a problem into smaller instances.
+              </p>
+
+              <div
+                class="window-frame p-4 bg-brand-dark border-red-500/30 space-y-3 text-xs"
+              >
+                <span
+                  class="text-red-400 font-bold block uppercase tracking-wider"
+                  >THE 2 MANDATORY RULES OF RECURSION:</span
+                >
+                <div class="p-2 border border-red-500/20 bg-black">
+                  <strong class="text-white block"
+                    >1. BASE CASE (Termination)</strong
+                  >
+                  Condition that stops the function from calling itself. Without
+                  this, you trigger a
+                  <span class="text-red-400"
+                    >RecursionError: maximum recursion depth exceeded</span
+                  >.
+                </div>
+                <div class="p-2 border border-red-500/20 bg-black">
+                  <strong class="text-white block"
+                    >2. RECURSIVE STEP (Reduction)</strong
+                  >
+                  The function call moving closer toward the Base Case.
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-6">
+              <div
+                class="window-frame p-4 bg-black border-brand-windowBorder space-y-3 font-mono text-xs"
+              >
+                <div
+                  class="flex justify-between items-center border-b border-brand-border pb-2 text-brand-neon"
+                >
+                  <span class="font-bold"
+                    >// CALL STACK SIMULATION: factorial(3)</span
+                  >
+                  <span class="text-[10px] text-gray-400">LIFO STACK</span>
+                </div>
+
+                <div class="space-y-2 text-center">
+                  <div
+                    class="p-2 bg-red-900/40 border border-red-500 text-red-200 font-bold"
+                  >
+                    factorial(3) → 3 * factorial(2) [WAITING]
+                  </div>
+                  <div
+                    class="p-2 bg-amber-900/40 border border-amber-500 text-amber-200 font-bold"
+                  >
+                    factorial(2) → 2 * factorial(1) [WAITING]
+                  </div>
+                  <div
+                    class="p-2 bg-emerald-900/40 border border-emerald-500 text-emerald-200 font-bold"
+                  >
+                    factorial(1) → Returns 1 [BASE CASE HIT!]
+                  </div>
+                </div>
+
+                <div
+                  class="p-2 bg-brand-card text-gray-300 text-center text-[11px] border border-brand-border"
+                >
+                  Unwinding Stack: 1 × 2 × 3 =
+                  <strong class="text-brand-neon text-sm">6</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              onclick="nextSlide()"
+              class="btn-outline-neon px-5 py-2 text-xs font-bold flex items-center gap-2"
+            >
+              SEE CODE + QUIZ 04 <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 9 : RECURSION CODE + QUIZ 04 ============ -->
+      <section class="slide" data-index="9">
+        <div class="slide-inner max-w-6xl mx-auto space-y-5">
+          <div
+            class="flex items-center justify-between border-b border-red-500/50 pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="tag-badge">CONCEPT 04</span>
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                RECURSION IN PRACTICE
+              </h2>
+            </div>
+            <span class="text-xs text-red-400 font-mono hidden sm:inline-block"
+              >&lt;CODE_PATTERNS&gt;</span
+            >
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5 font-mono text-xs">
+            <div class="neon-code-box p-4">
+              <span class="text-brand-neon font-bold block mb-2"
+                >// 1. Factorial Recursion</span
+              >
+              <pre
+                class="text-gray-200 leading-relaxed"
+              ><span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">factorial</span>(n):
+    <span class="text-gray-500"># Base Case</span>
+    <span class="text-brand-neon font-bold">if</span> n == <span class="text-emerald-300">1</span>:
+        <span class="text-brand-neon font-bold">return</span> <span class="text-emerald-300">1</span>
+    <span class="text-gray-500"># Recursive Step</span>
+    <span class="text-brand-neon font-bold">return</span> n * factorial(n - <span class="text-emerald-300">1</span>)</pre>
+            </div>
+
+            <div class="neon-code-box p-4">
+              <span class="text-brand-neon font-bold block mb-2"
+                >// 2. Fibonacci Recursion</span
+              >
+              <pre
+                class="text-gray-200 leading-relaxed"
+              ><span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">fibonacci</span>(n):
+    <span class="text-gray-500"># Base Cases</span>
+    <span class="text-brand-neon font-bold">if</span> n &lt;= <span class="text-emerald-300">0</span>: <span class="text-brand-neon font-bold">return</span> <span class="text-emerald-300">0</span>
+    <span class="text-brand-neon font-bold">if</span> n == <span class="text-emerald-300">1</span>: <span class="text-brand-neon font-bold">return</span> <span class="text-emerald-300">1</span>
+    <span class="text-gray-500"># Double Recursive Step</span>
+    <span class="text-brand-neon font-bold">return</span> fibonacci(n - <span class="text-emerald-300">1</span>) + fibonacci(n - <span class="text-emerald-300">2</span>)</pre>
+            </div>
+          </div>
+
+          <!-- Quiz 04 -->
+          <div class="window-frame p-6 bg-brand-card space-y-4">
+            <div
+              class="flex items-center justify-between border-b border-brand-border pb-2"
+            >
+              <span class="font-heading text-lg text-brand-neon"
+                >QUIZ 04: RECURSION PITFALLS</span
+              >
+              <span class="text-xs text-gray-400 font-mono">+50 PTS</span>
+            </div>
+            <p class="text-sm font-mono text-gray-200">
+              What error occurs if a recursive function lacks a base case?
+            </p>
+            <div
+              class="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs"
+            >
+              <button
+                data-correct="false"
+                onclick="checkQuiz(4, 'A', false, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                A) SyntaxError
+              </button>
+              <button
+                data-correct="true"
+                onclick="checkQuiz(4, 'B', true, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                B) RecursionError (Stack Overflow)
+              </button>
+              <button
+                data-correct="false"
+                onclick="checkQuiz(4, 'C', false, this)"
+                class="p-3 border border-brand-border hover:border-brand-neon bg-black text-left transition"
+              >
+                C) ZeroDivisionError
+              </button>
+            </div>
+            <div
+              id="q4-feedback"
+              class="hidden text-xs font-mono p-3 border rounded"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 10 : PROBLEMS WORKOUT ============ -->
+      <section class="slide" data-index="10">
+        <div class="slide-inner max-w-5xl mx-auto space-y-5">
+          <div
+            class="flex items-center justify-between border-b border-brand-border pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="tag-badge">MODULE 05</span>
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                PROBLEMS WORKOUT & ALGORITHMS
+              </h2>
+            </div>
+            <span
+              class="text-xs text-brand-neon hidden sm:inline-block font-mono"
+              >&lt;PRACTICE_CHALLENGES&gt;</span
+            >
+          </div>
+
+          <div class="space-y-4 font-mono">
+            <!-- Problem 1 -->
+            <div class="window-frame bg-brand-dark p-4">
+              <div
+                class="flex justify-between items-center cursor-pointer"
+                onclick="toggleAccordion('prob1')"
+              >
+                <div class="flex items-center space-x-3">
+                  <span class="text-brand-neon font-bold">#01</span>
+                  <span class="text-white font-bold text-sm"
+                    >PRIME NUMBER CHECKER</span
+                  >
+                </div>
+                <i
+                  id="prob1-icon"
+                  class="fa-solid fa-chevron-down text-brand-neon"
+                ></i>
+              </div>
+              <div
+                id="prob1"
+                class="hidden mt-4 pt-4 border-t border-brand-border space-y-3 text-xs text-gray-300"
+              >
+                <p>
+                  Write an algorithm to determine if a given integer n &gt; 1 is
+                  prime.
+                </p>
+                <div class="neon-code-box p-3">
+                  <pre
+                    class="text-gray-200"
+                  ><span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">is_prime</span>(n):
+    <span class="text-brand-neon font-bold">if</span> n &lt;= <span class="text-emerald-300">1</span>: <span class="text-brand-neon font-bold">return</span> <span class="text-amber-300">False</span>
+    <span class="text-brand-neon font-bold">for</span> i <span class="text-brand-neon font-bold">in</span> <span class="text-amber-200">range</span>(<span class="text-emerald-300">2</span>, <span class="text-amber-200">int</span>(n**<span class="text-emerald-300">0.5</span>) + <span class="text-emerald-300">1</span>):
+        <span class="text-brand-neon font-bold">if</span> n % i == <span class="text-emerald-300">0</span>:
+            <span class="text-brand-neon font-bold">return</span> <span class="text-amber-300">False</span>
+    <span class="text-brand-neon font-bold">return</span> <span class="text-amber-300">True</span></pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- Problem 2 -->
+            <div class="window-frame bg-brand-dark p-4">
+              <div
+                class="flex justify-between items-center cursor-pointer"
+                onclick="toggleAccordion('prob2')"
+              >
+                <div class="flex items-center space-x-3">
+                  <span class="text-brand-neon font-bold">#02</span>
+                  <span class="text-white font-bold text-sm"
+                    >PALINDROME CHECKER (STRINGS / NUMBERS)</span
+                  >
+                </div>
+                <i
+                  id="prob2-icon"
+                  class="fa-solid fa-chevron-down text-brand-neon"
+                ></i>
+              </div>
+              <div
+                id="prob2"
+                class="hidden mt-4 pt-4 border-t border-brand-border space-y-3 text-xs text-gray-300"
+              >
+                <p>
+                  Check if a string reads the same backwards using slice
+                  notation <code class="text-brand-neon">[::-1]</code>.
+                </p>
+                <div class="neon-code-box p-3">
+                  <pre
+                    class="text-gray-200"
+                  ><span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">is_palindrome</span>(s):
+    cleaned = <span class="text-emerald-300">""</span>.join(char.<span class="text-blue-400">lower</span>() <span class="text-brand-neon font-bold">for</span> char <span class="text-brand-neon font-bold">in</span> s <span class="text-brand-neon font-bold">if</span> char.<span class="text-blue-400">isalnum</span>())
+    <span class="text-brand-neon font-bold">return</span> cleaned == cleaned[::-<span class="text-emerald-300">1</span>]</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              onclick="nextSlide()"
+              class="btn-outline-neon px-5 py-2 text-xs font-bold flex items-center gap-2"
+            >
+              GO TO PROJECTS <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 11 : PROJECTS ============ -->
+      <section class="slide" data-index="11">
+        <div class="slide-inner max-w-6xl mx-auto space-y-4">
+          <div
+            class="flex items-center justify-between border-b border-brand-border pb-3"
+          >
+            <div class="flex items-center space-x-3">
+              <span class="tag-badge">MODULE 06</span>
+              <h2 class="font-heading text-2xl sm:text-4xl text-white">
+                DAY 2 MINI-PROJECT BUILD SESSIONS
+              </h2>
+            </div>
+            <span
+              class="text-xs text-brand-neon hidden sm:inline-block font-mono"
+              >&lt;INTERACTIVE_SUITE&gt;</span
+            >
+          </div>
+
+          <!-- Tab Navigation -->
+          <div
+            class="flex border-b border-brand-border font-mono text-[11px] sm:text-xs overflow-x-auto"
+          >
+            <button
+              onclick="switchProjectTab('calc')"
+              id="tab-calc"
+              class="px-4 sm:px-5 py-3 border-b-2 border-brand-neon text-brand-neon font-bold bg-brand-card whitespace-nowrap"
+            >
+              1. CALCULATOR PROJECT
+            </button>
+            <button
+              onclick="switchProjectTab('guess')"
+              id="tab-guess"
+              class="px-4 sm:px-5 py-3 border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap"
+            >
+              2. NUMBER GUESSING GAME
+            </button>
+            <button
+              onclick="switchProjectTab('db')"
+              id="tab-db"
+              class="px-4 sm:px-5 py-3 border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap"
+            >
+              3. STUDENT DATABASE CLI
+            </button>
+          </div>
+
+          <!-- Project 1: Calculator -->
+          <div id="project-calc" class="window-frame p-5 bg-brand-dark">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <div class="lg:col-span-5 space-y-3 font-mono text-xs">
+                <span class="tag-badge">PLAYABLE IMPLEMENTATION</span>
+                <h3 class="text-base font-bold text-white">
+                  Interactive Python Calculator Logic
+                </h3>
+                <p class="text-gray-400 text-[11px]">
+                  Executes arithmetic operations using modular functional
+                  dispatching.
+                </p>
+
+                <div class="window-frame bg-black p-3 space-y-2">
+                  <div
+                    class="bg-gray-900 p-3 text-right font-mono text-xl text-brand-neon border border-brand-border rounded"
+                    id="calc-display"
+                  >
+                    0
+                  </div>
+                  <div class="grid grid-cols-4 gap-2">
+                    <button
+                      onclick="calcInput('7')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      7
+                    </button>
+                    <button
+                      onclick="calcInput('8')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      8
+                    </button>
+                    <button
+                      onclick="calcInput('9')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      9
+                    </button>
+                    <button
+                      onclick="calcOp('/')"
+                      class="p-2 border border-brand-neon text-brand-neon hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      /
+                    </button>
+
+                    <button
+                      onclick="calcInput('4')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      4
+                    </button>
+                    <button
+                      onclick="calcInput('5')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      5
+                    </button>
+                    <button
+                      onclick="calcInput('6')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      6
+                    </button>
+                    <button
+                      onclick="calcOp('*')"
+                      class="p-2 border border-brand-neon text-brand-neon hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      *
+                    </button>
+
+                    <button
+                      onclick="calcInput('1')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      1
+                    </button>
+                    <button
+                      onclick="calcInput('2')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      2
+                    </button>
+                    <button
+                      onclick="calcInput('3')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      3
+                    </button>
+                    <button
+                      onclick="calcOp('-')"
+                      class="p-2 border border-brand-neon text-brand-neon hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      -
+                    </button>
+
+                    <button
+                      onclick="calcClear()"
+                      class="p-2 border border-red-500 text-red-400 font-bold"
+                    >
+                      C
+                    </button>
+                    <button
+                      onclick="calcInput('0')"
+                      class="p-2 border border-brand-border bg-brand-card text-white hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      0
+                    </button>
+                    <button
+                      onclick="calcEquals()"
+                      class="p-2 border border-brand-neon bg-brand-neon text-black font-bold"
+                    >
+                      =
+                    </button>
+                    <button
+                      onclick="calcOp('+')"
+                      class="p-2 border border-brand-neon text-brand-neon hover:bg-brand-neon hover:text-black font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-7">
+                <div class="neon-code-box p-4 font-mono text-xs h-full">
+                  <span class="text-brand-neon font-bold block mb-2"
+                    >// calculator.py Source Logic</span
+                  >
+                  <pre
+                    class="text-gray-300 leading-relaxed overflow-x-auto"
+                  ><span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">add</span>(a, b): <span class="text-brand-neon font-bold">return</span> a + b
+<span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">subtract</span>(a, b): <span class="text-brand-neon font-bold">return</span> a - b
+<span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">multiply</span>(a, b): <span class="text-brand-neon font-bold">return</span> a * b
+<span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">divide</span>(a, b): 
+    <span class="text-brand-neon font-bold">return</span> a / b <span class="text-brand-neon font-bold">if</span> b != <span class="text-emerald-300">0</span> <span class="text-brand-neon font-bold">else</span> <span class="text-emerald-300">"Error: Division by Zero"</span>
+
+operations = {<span class="text-emerald-300">'+'</span>: add, <span class="text-emerald-300">'-'</span>: subtract, <span class="text-emerald-300">'*'</span>: multiply, <span class="text-emerald-300">'/'</span>: divide}
+
+num1 = <span class="text-amber-200">float</span>(<span class="text-amber-200">input</span>(<span class="text-emerald-300">"First number: "</span>))
+op = <span class="text-amber-200">input</span>(<span class="text-emerald-300">"Operator (+,-,*,/): "</span>)
+num2 = <span class="text-amber-200">float</span>(<span class="text-amber-200">input</span>(<span class="text-emerald-300">"Second number: "</span>))
+
+<span class="text-brand-neon font-bold">if</span> op <span class="text-brand-neon font-bold">in</span> operations:
+    result = operations[op](num1, num2)
+    <span class="text-amber-200">print</span>(<span class="text-emerald-300">f"Result: {result}"</span>)</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 2: Guessing Game -->
+          <div id="project-guess" class="window-frame p-5 bg-brand-dark hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <div class="lg:col-span-5 space-y-3 font-mono text-xs">
+                <span class="tag-badge">INTERACTIVE GAME</span>
+                <h3 class="text-base font-bold text-white">
+                  Number Guessing Game (1 - 100)
+                </h3>
+                <p class="text-gray-400 text-[11px]">
+                  Uses random module and while loop iteration.
+                </p>
+
+                <div
+                  class="window-frame bg-black p-4 space-y-3 border-brand-border"
+                >
+                  <p class="text-gray-300">
+                    Guess secret number between 1 and 100:
+                  </p>
+                  <div class="flex gap-2">
+                    <input
+                      type="number"
+                      id="guess-input"
+                      min="1"
+                      max="100"
+                      placeholder="50"
+                      class="bg-brand-card border border-brand-border px-3 py-2 text-white w-full focus:border-brand-neon outline-none"
+                    />
+                    <button
+                      onclick="playGuessGame()"
+                      class="btn-neon px-4 py-2 font-bold"
+                    >
+                      GUESS
+                    </button>
+                  </div>
+                  <div
+                    id="guess-message"
+                    class="text-brand-neon font-bold min-h-[24px]"
+                  >
+                    Game initialized! Enter guess.
+                  </div>
+                  <div class="text-gray-500 text-[10px]">
+                    ATTEMPTS: <span id="guess-count" class="text-white">0</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-7">
+                <div class="neon-code-box p-4 font-mono text-xs h-full">
+                  <span class="text-brand-neon font-bold block mb-2"
+                    >// number_guessing.py</span
+                  >
+                  <pre
+                    class="text-gray-300 leading-relaxed overflow-x-auto"
+                  ><span class="text-brand-neon font-bold">import</span> random
+
+secret = random.<span class="text-blue-400">randint</span>(<span class="text-emerald-300">1</span>, <span class="text-emerald-300">100</span>)
+attempts = <span class="text-emerald-300">0</span>
+
+<span class="text-brand-neon font-bold">while</span> <span class="text-amber-300">True</span>:
+    guess = <span class="text-amber-200">int</span>(<span class="text-amber-200">input</span>(<span class="text-emerald-300">"Guess number (1-100): "</span>))
+    attempts += <span class="text-emerald-300">1</span>
+    
+    <span class="text-brand-neon font-bold">if</span> guess &lt; secret:
+        <span class="text-amber-200">print</span>(<span class="text-emerald-300">"TOO LOW! Try higher."</span>)
+    <span class="text-brand-neon font-bold">elif</span> guess &gt; secret:
+        <span class="text-amber-200">print</span>(<span class="text-emerald-300">"TOO HIGH! Try lower."</span>)
+    <span class="text-brand-neon font-bold">else</span>:
+        <span class="text-amber-200">print</span>(<span class="text-emerald-300">f"CORRECT! Solved in {attempts} tries."</span>)
+        <span class="text-brand-neon font-bold">break</span></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 3: Student Database -->
+          <div id="project-db" class="window-frame p-5 bg-brand-dark hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <div class="lg:col-span-5 space-y-3 font-mono text-xs">
+                <span class="tag-badge">CLI DATABASE SIMULATOR</span>
+                <h3 class="text-base font-bold text-white">
+                  In-Memory Student Records System
+                </h3>
+                <p class="text-gray-400 text-[11px]">
+                  Manipulate student data structures via function calls.
+                </p>
+
+                <div class="window-frame bg-black p-3 space-y-2 text-[11px]">
+                  <div class="flex gap-2">
+                    <input
+                      id="db-name"
+                      placeholder="Student Name"
+                      class="bg-brand-card border border-brand-border p-1.5 text-white w-1/2 outline-none focus:border-brand-neon"
+                    />
+                    <input
+                      id="db-grade"
+                      placeholder="Grade (A/B/C)"
+                      class="bg-brand-card border border-brand-border p-1.5 text-white w-1/2 outline-none focus:border-brand-neon"
+                    />
+                  </div>
+                  <button
+                    onclick="addStudentDB()"
+                    class="w-full btn-neon py-1.5 font-bold"
+                  >
+                    ADD RECORD
+                  </button>
+
+                  <div class="mt-3 border-t border-brand-border pt-2">
+                    <strong class="text-brand-neon block mb-1"
+                      >RECORD STORAGE:</strong
+                    >
+                    <div
+                      id="db-list"
+                      class="space-y-1 text-gray-300 max-h-32 overflow-y-auto"
+                    >
+                      • Arjun - Grade: A <br />
+                      • Ananya - Grade: A+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-7">
+                <div class="neon-code-box p-4 font-mono text-xs h-full">
+                  <span class="text-brand-neon font-bold block mb-2"
+                    >// student_db.py</span
+                  >
+                  <pre
+                    class="text-gray-300 leading-relaxed overflow-x-auto"
+                  ><span class="text-purple-400">database</span> = []
+
+<span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">add_student</span>(name, grade):
+    student = {<span class="text-emerald-300">"name"</span>: name, <span class="text-emerald-300">"grade"</span>: grade}
+    database.<span class="text-blue-400">append</span>(student)
+    <span class="text-amber-200">print</span>(<span class="text-emerald-300">f"Record saved for {name}."</span>)
+
+<span class="text-brand-neon font-bold">def</span> <span class="text-blue-400">view_students</span>():
+    <span class="text-brand-neon font-bold">for</span> idx, s <span class="text-brand-neon font-bold">in</span> <span class="text-amber-200">enumerate</span>(database, <span class="text-emerald-300">1</span>):
+        <span class="text-amber-200">print</span>(<span class="text-emerald-300">f"{idx}. {s['name']} - Grade: {s['grade']}"</span>)</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 12 : WRAP UP ============ -->
+      <section class="slide" data-index="12">
+        <div
+          class="slide-inner max-w-4xl mx-auto h-full flex flex-col justify-center"
+        >
+          <div class="window-frame p-8 md:p-12 text-center space-y-6">
+            <span class="tag-badge">SESSION COMPLETE</span>
+            <h2
+              class="font-heading text-4xl sm:text-6xl text-white leading-none"
+            >
+              KEEP <span class="text-brand-neon">CODING</span>
+            </h2>
+            <p
+              class="font-mono text-sm text-gray-300 max-w-xl mx-auto leading-relaxed"
+            >
+              You've covered decisions, loops, functions and recursion. Now
+              build the three projects, solve the workout problems, and push
+              your code to GitHub.
+            </p>
+
+            <div
+              class="grid grid-cols-3 gap-3 font-mono text-xs max-w-lg mx-auto"
+            >
+              <div class="p-3 border border-brand-border bg-black">
+                <span
+                  class="text-brand-neon font-heading text-2xl block"
+                  id="final-score"
+                  >0</span
+                >
+                <span class="text-gray-400 text-[10px]">PTS EARNED</span>
+              </div>
+              <div class="p-3 border border-brand-border bg-black">
+                <span class="text-brand-neon font-heading text-2xl block"
+                  >06</span
+                >
+                <span class="text-gray-400 text-[10px]">MODULES</span>
+              </div>
+              <div class="p-3 border border-brand-border bg-black">
+                <span class="text-brand-neon font-heading text-2xl block"
+                  >03</span
+                >
+                <span class="text-gray-400 text-[10px]">PROJECTS</span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3 justify-center pt-2">
+              <button
+                onclick="goToSlide(0)"
+                class="btn-neon px-6 py-3 text-sm flex items-center gap-2"
+              >
+                <i class="fa-solid fa-rotate-left"></i> RESTART DECK
+              </button>
+              <button
+                onclick="goToSlide(11)"
+                class="btn-outline-neon px-6 py-3 text-sm font-bold flex items-center gap-2"
+              >
+                <i class="fa-solid fa-code"></i> BACK TO PROJECTS
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SLIDE 13 : CAT (GREEN SCREEN) ============ -->
+      <section class="slide" data-index="13">
+        <!-- Cat stands straight on the page background; the green is keyed out -->
+        <div class="ck-full">
+          <!-- Playback controls: speaker mutes, chevron reveals the slider -->
+          <div class="absolute top-3 right-3 z-30 flex items-center gap-2">
+            <div class="ck-vol" id="ck-vol-box">
+              <div class="ck-vol-slider" id="ck-vol-slide">
+                <input
+                  id="ck-vol"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="100"
+                  aria-label="Cat volume"
+                />
+                <output id="ck-vol-v">100%</output>
+              </div>
+              <button
+                type="button"
+                id="ck-vol-mute"
+                class="ck-vol-btn"
+                title="Mute / unmute"
+                aria-label="Mute or unmute the cat"
+                aria-pressed="false"
+              >
+                <i
+                  class="fa-solid fa-volume-high"
+                  id="ck-vol-icon"
+                  aria-hidden="true"
+                ></i>
+              </button>
+              <button
+                type="button"
+                id="ck-vol-arrow"
+                class="ck-vol-btn"
+                title="Volume slider"
+                aria-label="Show the volume slider"
+                aria-expanded="false"
+              >
+                <i
+                  class="fa-solid fa-chevron-right"
+                  id="ck-vol-arrow-icon"
+                  aria-hidden="true"
+                ></i>
+              </button>
+            </div>
+            <!-- Key tuning tool: a popup panel that lives in this page -->
+            <button
+              type="button"
+              onclick="ckEditorToggle()"
+              title="Tune the chroma key"
+              class="font-mono text-[11px] font-bold tracking-wider px-2.5 py-1.5 rounded border border-brand-border bg-brand-dark/80 text-gray-300 backdrop-blur hover:border-brand-neon hover:text-brand-neon transition"
+            >
+              KEY EDITOR
+            </button>
+          </div>
+          <canvas id="ck-canvas" width="640" height="360" class="ck-canvas"></canvas>
+          <video
+            id="ck-video"
+            class="ck-video"
+            src="cat.mp4"
+            loop
+            playsinline
+          ></video>
+          <!-- Matte used when the browser won't hand over video pixels
+               (e.g. the file opened straight from disk) -->
+          <svg class="ck-svg" aria-hidden="true">
+            <filter
+              id="ck-key"
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              color-interpolation-filters="sRGB"
+            >
+              <feColorMatrix
+                type="matrix"
+                values="1 0 0 0 0
+                        0 1 0 0 0
+                        0 0 1 0 0
+                        2 -3 2 0 1.2"
+              />
+              <feComponentTransfer>
+                <feFuncA type="table" tableValues="0 0 1 1" />
+              </feComponentTransfer>
+            </filter>
+          </svg>
+          <!-- Thank-you captions, timed off the video's own clock so they
+               restart with the loop and every replay of the slide -->
+          <div class="ck-text" id="ck-text" aria-hidden="true">
+            <div class="ck-cap ck-cap-right" id="ck-cap-right">
+              <span class="ck-line">That's the end</span>
+              <span class="ck-line">of our presentation</span>
+            </div>
+            <div class="ck-cap ck-cap-left" id="ck-cap-left">
+              <span class="ck-line">Thank you</span>
+              <span class="ck-line">for listening!</span>
+              <span class="ck-line">Python Study Jam</span>
+              <span class="ck-line">Successfully Concluded!</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Beat fx: a light that hits the whole site on each metronome beat -->
+    <div class="beat-fx" id="beat-fx" aria-hidden="true"></div>
+
+    <!-- ============ CHROMA KEY EDITOR POPUP (lives in this page) ============ -->
+    <div id="ck-editor" class="ck-editor" role="dialog" aria-label="Chroma key editor" hidden>
+      <div class="ck-editor-head">
+        <span>CHROMA KEY</span>
+        <button type="button" class="ck-editor-x" onclick="ckEditorClose()" title="Close">✕</button>
+      </div>
+      <div class="ck-editor-body">
+        <div class="ck-row">
+          <label for="ck-key-color">Key colour</label>
+          <input type="color" id="ck-key-color" />
+          <button type="button" class="ck-btn" id="ck-pick" title="Click the cat to sample its backdrop">PICK</button>
+        </div>
+        <div class="ck-row">
+          <label for="ck-sim">Tolerance</label>
+          <input type="range" id="ck-sim" min="0" max="1" step="0.005" />
+          <output id="ck-sim-v"></output>
+        </div>
+        <div class="ck-row">
+          <label for="ck-soft">Softness</label>
+          <input type="range" id="ck-soft" min="0" max="0.5" step="0.005" />
+          <output id="ck-soft-v"></output>
+        </div>
+        <div class="ck-row">
+          <label for="ck-spill">Despill</label>
+          <input type="range" id="ck-spill" min="0" max="1" step="0.01" />
+          <output id="ck-spill-v"></output>
+        </div>
+        <div class="ck-row">
+          <label for="ck-bg-color">Background</label>
+          <input type="color" id="ck-bg-color" value="#111111" />
+          <button type="button" class="ck-btn" id="ck-bg-clear" title="Back to the slide's own background">CLEAR</button>
+        </div>
+        <div class="ck-sep"></div>
+        <div class="ck-row">
+          <label for="ck-bpm">BPM</label>
+          <input type="range" id="ck-bpm" min="40" max="240" step="1" value="151" />
+          <output id="ck-bpm-v">151</output>
+        </div>
+        <div class="ck-row">
+          <label for="ck-delay">Delay</label>
+          <input type="number" id="ck-delay" min="0" max="10000" step="10" value="0" title="Milliseconds before the first beat" />
+          <output id="ck-delay-v">0 ms (0.00 s)</output>
+        </div>
+        <div class="ck-row">
+          <label for="ck-skip">Skip</label>
+          <input type="number" id="ck-skip" min="0" max="9999" step="1" value="0" title="Ticks to count but leave silent" />
+          <output id="ck-skip-v">0.00 s</output>
+        </div>
+        <div class="ck-row">
+          <label for="ck-end">End at</label>
+          <input type="number" id="ck-end" min="0" max="99999" step="1" placeholder="∞" title="Tick to stop on — leave empty to never stop" />
+          <output id="ck-end-v">∞</output>
+        </div>
+        <div class="ck-row">
+          <label>Metronome</label>
+          <button type="button" class="ck-btn" id="ck-metro-start">START</button>
+          <button type="button" class="ck-btn" id="ck-tap" title="Tap along to find the tempo">TAP</button>
+          <button type="button" class="ck-btn ck-btn-icon" id="ck-metro-mute" title="Mute the click — the beats keep running" aria-pressed="false">
+            <i class="fa-solid fa-volume-high" id="ck-metro-mute-icon"></i>
+          </button>
+          <span class="ck-beat" id="ck-beat" aria-hidden="true"></span>
+        </div>
+        <div class="ck-row">
+          <label for="ck-metro-auto">Auto start</label>
+          <input type="checkbox" id="ck-metro-auto" checked />
+          <span class="ck-note">when slide 13 opens</span>
+        </div>
+        <div class="ck-sep"></div>
+        <div class="ck-row">
+          <label for="ck-fx">Beat fx</label>
+          <select id="ck-fx"></select>
+        </div>
+        <div class="ck-row fx-param" data-param="light" hidden>
+          <label for="ck-fx-color">Light</label>
+          <input type="color" id="ck-fx-color" value="#9dff20" />
+          <span class="ck-note">hits the whole site</span>
+        </div>
+        <div class="ck-row fx-param" data-param="light" hidden>
+          <label for="ck-fx-random">Randomize</label>
+          <input type="checkbox" id="ck-fx-random" />
+          <span class="ck-note">new colour each beat</span>
+        </div>
+        <div class="ck-row fx-param" data-param="light" hidden>
+          <label for="ck-fx-int">Intensity</label>
+          <input type="range" id="ck-fx-int" min="0" max="1" step="0.05" value="0.55" />
+          <output id="ck-fx-int-v">0.55</output>
+        </div>
+        <div class="ck-row fx-param" data-param="light" hidden>
+          <label for="ck-fx-attack">Attack</label>
+          <input type="range" id="ck-fx-attack" min="5" max="300" step="5" value="60" />
+          <output id="ck-fx-attack-v">60 ms</output>
+        </div>
+        <div class="ck-row fx-param" data-param="light" hidden>
+          <label for="ck-fx-release">Release</label>
+          <input type="range" id="ck-fx-release" min="20" max="1500" step="10" value="320" />
+          <output id="ck-fx-release-v">320 ms</output>
+        </div>
+        <div class="ck-row">
+          <label for="ck-shake">Shake</label>
+          <input type="checkbox" id="ck-shake" />
+          <span class="ck-note">jolts the page, layers with any fx</span>
+        </div>
+        <div class="ck-row shake-param" hidden>
+          <label for="ck-shake-amt">Amount</label>
+          <input type="range" id="ck-shake-amt" min="0" max="60" step="1" value="10" />
+          <output id="ck-shake-amt-v">10 px</output>
+        </div>
+        <div class="ck-row shake-param" hidden>
+          <label for="ck-shake-rot">Rotate</label>
+          <input type="range" id="ck-shake-rot" min="0" max="8" step="0.1" value="1.2" />
+          <output id="ck-shake-rot-v">1.2°</output>
+        </div>
+        <div class="ck-row shake-param" hidden>
+          <label for="ck-shake-cycles">Cycles</label>
+          <input type="range" id="ck-shake-cycles" min="1" max="12" step="1" value="3" />
+          <output id="ck-shake-cycles-v">3</output>
+        </div>
+        <div class="ck-row shake-param" hidden>
+          <label for="ck-shake-ms">Duration</label>
+          <input type="range" id="ck-shake-ms" min="60" max="1200" step="10" value="260" />
+          <output id="ck-shake-ms-v">260 ms</output>
+        </div>
+        <div class="ck-editor-foot">
+          <span class="ck-hint" id="ck-hint">Edits the cat on this slide live</span>
+          <button type="button" class="ck-btn" onclick="ckEditorReset()">RESET</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+    <footer
+      class="shrink-0 z-50 bg-brand-dark/95 backdrop-blur border-t border-brand-border px-3 sm:px-4 py-2"
+    >
+      <div
+        class="max-w-7xl mx-auto flex items-center justify-between gap-3 font-mono"
+      >
+        <button
+          onclick="prevSlide()"
+          id="btn-prev"
+          class="flex items-center gap-2 px-3 py-1.5 border border-brand-border text-gray-300 hover:border-brand-neon hover:text-brand-neon transition text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <i class="fa-solid fa-arrow-left"></i
+          ><span class="hidden sm:inline">PREV</span>
+        </button>
+
+        <div class="flex items-center gap-3">
+          <div id="dots" class="hidden md:flex items-center gap-1.5"></div>
+          <span class="text-[11px] text-gray-400 tracking-widest">
+            <span id="slide-counter" class="text-brand-neon font-bold">01</span>
+            / <span id="slide-total">13</span>
+            <span id="ck-status" class="text-gray-600"></span>
+          </span>
+        </div>
+
+        <button
+          onclick="nextSlide()"
+          id="btn-next"
+          class="flex items-center gap-2 px-3 py-1.5 border border-brand-neon text-brand-neon hover:bg-brand-neon hover:text-black transition text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <span class="hidden sm:inline">NEXT</span
+          ><i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </footer>
+
+    <!-- ================= INTERACTIVE JAVASCRIPT LOGIC ================= -->
+    <script>
+      // -------------------------------------------------------------
+      // SLIDE ENGINE
+      // -------------------------------------------------------------
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const totalSlides = slides.length;
+      let currentSlide = 0;
+
+      document.getElementById("slide-total").innerText = String(
+        totalSlides,
+      ).padStart(2, "0");
+
+      // Build dots
+      const dotsWrap = document.getElementById("dots");
+      slides.forEach((_, i) => {
+        const dot = document.createElement("button");
+        dot.className = "dot";
+        dot.title = `Slide ${i + 1}`;
+        dot.onclick = () => goToSlide(i);
+        dotsWrap.appendChild(dot);
+      });
+      const dots = Array.from(dotsWrap.children);
+
+      function render() {
+        slides.forEach((s, i) => {
+          s.classList.toggle("active", i === currentSlide);
+          if (i === currentSlide) s.scrollTop = 0;
+        });
+
+        dots.forEach((d, i) =>
+          d.classList.toggle("active", i === currentSlide),
+        );
+
+        document.getElementById("slide-counter").innerText = String(
+          currentSlide + 1,
+        ).padStart(2, "0");
+        document.getElementById("progress-bar").style.width =
+          (currentSlide / (totalSlides - 1)) * 100 + "%";
+
+        document.getElementById("btn-prev").disabled = currentSlide === 0;
+        document.getElementById("btn-next").disabled =
+          currentSlide === totalSlides - 1;
+
+        const fs = document.getElementById("final-score");
+        if (fs) fs.innerText = currentScore;
+      }
+
+      function goToSlide(index) {
+        if (index < 0 || index >= totalSlides || index === currentSlide) return;
+        document.body.classList.toggle("nav-back", index < currentSlide);
+        currentSlide = index;
+        render();
+      }
+
+      function nextSlide() {
+        goToSlide(currentSlide + 1);
+      }
+      function prevSlide() {
+        goToSlide(currentSlide - 1);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        const tag = (e.target.tagName || "").toLowerCase();
+        if (
+          tag === "input" ||
+          tag === "textarea" ||
+          e.target.id === "snakeCanvas"
+        )
+          return;
+
+        if (e.key === "ArrowRight" || e.key === "PageDown") {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+          e.preventDefault();
+          prevSlide();
+        } else if (e.key === "Home") {
+          e.preventDefault();
+          goToSlide(0);
+        } else if (e.key === "End") {
+          e.preventDefault();
+          goToSlide(totalSlides - 1);
+        }
+      });
+
+      // -------------------------------------------------------------
+      // SCORE & QUIZ SYSTEM LOGIC
+      // -------------------------------------------------------------
+      let currentScore = 0;
+      const quizAnswered = { 1: false, 2: false, 3: false, 4: false };
+
+      function checkQuiz(qNum, selectedOption, isCorrect, btnElement) {
+        if (quizAnswered[qNum]) return;
+
+        const container = btnElement.parentElement;
+        const buttons = container.querySelectorAll("button");
+        buttons.forEach((btn) =>
+          btn.classList.add("opacity-50", "cursor-not-allowed"),
+        );
+
+        const fb = document.getElementById(`q${qNum}-feedback`);
+
+        if (isCorrect) {
+          btnElement.classList.remove("border-brand-border", "opacity-50");
+          btnElement.classList.add(
+            "border-emerald-500",
+            "bg-emerald-950/50",
+            "text-emerald-300",
+          );
+          currentScore += 50;
+          document.getElementById("user-score").innerText = currentScore;
+          if (fb) {
+            fb.classList.remove("hidden");
+            fb.className =
+              "text-xs font-mono p-3 border border-emerald-500 bg-emerald-950/30 text-emerald-300";
+            fb.innerHTML =
+              '<i class="fa-solid fa-circle-check"></i> CORRECT! +50 PTS';
+          }
+        } else {
+          btnElement.classList.remove("border-brand-border", "opacity-50");
+          btnElement.classList.add(
+            "border-red-500",
+            "bg-red-950/50",
+            "text-red-300",
+          );
+
+          // reveal the correct answer
+          const correctBtn = container.querySelector('[data-correct="true"]');
+          if (correctBtn) {
+            correctBtn.classList.remove("opacity-50");
+            correctBtn.classList.add(
+              "border-emerald-500",
+              "bg-emerald-950/50",
+              "text-emerald-300",
+            );
+          }
+
+          if (fb) {
+            fb.classList.remove("hidden");
+            fb.className =
+              "text-xs font-mono p-3 border border-red-500 bg-red-950/30 text-red-300";
+            fb.innerHTML =
+              '<i class="fa-solid fa-circle-xmark"></i> NOT QUITE — correct answer highlighted above.';
+          }
+        }
+
+        quizAnswered[qNum] = true;
+      }
+
+      // -------------------------------------------------------------
+      // ACCORDION TOGGLE
+      // -------------------------------------------------------------
+      function toggleAccordion(id) {
+        const content = document.getElementById(id);
+        const icon = document.getElementById(`${id}-icon`);
+        content.classList.toggle("hidden");
+        icon.classList.toggle("fa-chevron-up");
+        icon.classList.toggle("fa-chevron-down");
+      }
+
+      // -------------------------------------------------------------
+      // PROJECT TAB SWITCHER
+      // -------------------------------------------------------------
+      function switchProjectTab(tab) {
+        ["calc", "guess", "db"].forEach((t) => {
+          document.getElementById(`project-${t}`).classList.add("hidden");
+          const tabBtn = document.getElementById(`tab-${t}`);
+          tabBtn.classList.remove(
+            "border-brand-neon",
+            "text-brand-neon",
+            "font-bold",
+            "bg-brand-card",
+          );
+          tabBtn.classList.add("border-transparent", "text-gray-400");
+        });
+
+        document.getElementById(`project-${tab}`).classList.remove("hidden");
+        const activeTab = document.getElementById(`tab-${tab}`);
+        activeTab.classList.add(
+          "border-brand-neon",
+          "text-brand-neon",
+          "font-bold",
+          "bg-brand-card",
+        );
+        activeTab.classList.remove("border-transparent", "text-gray-400");
+      }
+
+      // -------------------------------------------------------------
+      // CALCULATOR LOGIC
+      // -------------------------------------------------------------
+      let calcVal = "0";
+      function calcInput(num) {
+        if (calcVal === "0") calcVal = num;
+        else calcVal += num;
+        document.getElementById("calc-display").innerText = calcVal;
+      }
+      function calcOp(op) {
+        calcVal += ` ${op} `;
+        document.getElementById("calc-display").innerText = calcVal;
+      }
+      function calcClear() {
+        calcVal = "0";
+        document.getElementById("calc-display").innerText = calcVal;
+      }
+      function calcEquals() {
+        try {
+          calcVal = eval(calcVal.replace(/ /g, "")).toString();
+          document.getElementById("calc-display").innerText = calcVal;
+        } catch (e) {
+          document.getElementById("calc-display").innerText = "ERR";
+          calcVal = "0";
+        }
+      }
+
+      // -------------------------------------------------------------
+      // NUMBER GUESSING GAME LOGIC
+      // -------------------------------------------------------------
+      let secretNum = Math.floor(Math.random() * 100) + 1;
+      let guessAttempts = 0;
+
+      function playGuessGame() {
+        const val = parseInt(document.getElementById("guess-input").value);
+        const msg = document.getElementById("guess-message");
+        const countEl = document.getElementById("guess-count");
+
+        if (isNaN(val)) return;
+
+        guessAttempts++;
+        countEl.innerText = guessAttempts;
+
+        if (val < secretNum) {
+          msg.innerText = "TOO LOW! Try higher.";
+          msg.className = "text-amber-400 font-bold";
+        } else if (val > secretNum) {
+          msg.innerText = "TOO HIGH! Try lower.";
+          msg.className = "text-amber-400 font-bold";
+        } else {
+          msg.innerText = `🎉 CORRECT! Solved in ${guessAttempts} tries!`;
+          msg.className = "text-emerald-400 font-bold animate-pulse";
+        }
+      }
+
+      // -------------------------------------------------------------
+      // STUDENT DATABASE LOGIC
+      // -------------------------------------------------------------
+      const studentDB = [
+        { name: "Arjun", grade: "A" },
+        { name: "Ananya", grade: "A+" },
+      ];
+
+      function addStudentDB() {
+        const name = document.getElementById("db-name").value.trim();
+        const grade = document.getElementById("db-grade").value.trim();
+
+        if (!name || !grade) return;
+
+        studentDB.push({ name, grade });
+        document.getElementById("db-name").value = "";
+        document.getElementById("db-grade").value = "";
+
+        renderDB();
+      }
+
+      function renderDB() {
+        const listEl = document.getElementById("db-list");
+        listEl.innerHTML = studentDB
+          .map((s) => `• ${s.name} - Grade: ${s.grade}`)
+          .join("<br>");
+      }
+
+      // -------------------------------------------------------------
+      // PIXEL SNAKE CANVAS GAME SIMULATOR
+      // -------------------------------------------------------------
+      const canvas = document.getElementById("snakeCanvas");
+      const ctx = canvas.getContext("2d");
+      const gridSize = 10;
+      let snake = [
+        { x: 150, y: 100 },
+        { x: 140, y: 100 },
+        { x: 130, y: 100 },
+      ];
+      let dx = 10,
+        dy = 0;
+      let food = { x: 200, y: 100 };
+      let snakeScore = 0;
+
+      function drawSnake() {
+        ctx.fillStyle = "#0A0A0A";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Food
+        ctx.fillStyle = "#FF4444";
+        ctx.fillRect(food.x, food.y, gridSize, gridSize);
+
+        // Draw Snake (Pixel Green style)
+        snake.forEach((part, index) => {
+          ctx.fillStyle = index === 0 ? "#ADFF2F" : "#7ACC00";
+          ctx.fillRect(part.x, part.y, gridSize - 1, gridSize - 1);
+        });
+      }
+
+      function moveSnake() {
+        const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+        // Wrap around edges
+        if (head.x < 0) head.x = canvas.width - gridSize;
+        if (head.x >= canvas.width) head.x = 0;
+        if (head.y < 0) head.y = canvas.height - gridSize;
+        if (head.y >= canvas.height) head.y = 0;
+
+        snake.unshift(head);
+
+        if (head.x === food.x && head.y === food.y) {
+          snakeScore += 10;
+          document.getElementById("snake-game-score").innerText = snakeScore;
+          food = {
+            x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
+            y:
+              Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize,
+          };
+        } else {
+          snake.pop();
+        }
+      }
+
+      function gameLoop() {
+        if (currentSlide !== 0) return; // pause when not visible
+        moveSnake();
+        drawSnake();
+      }
+
+      // Snake only responds when its canvas is focused (so arrows don't clash with slide nav)
+      document.addEventListener("keydown", (e) => {
+        if (document.activeElement !== canvas) return;
+        if (e.key === "ArrowUp" && dy === 0) {
+          dx = 0;
+          dy = -gridSize;
+          e.preventDefault();
+        }
+        if (e.key === "ArrowDown" && dy === 0) {
+          dx = 0;
+          dy = gridSize;
+          e.preventDefault();
+        }
+        if (e.key === "ArrowLeft" && dx === 0) {
+          dx = -gridSize;
+          dy = 0;
+          e.preventDefault();
+        }
+        if (e.key === "ArrowRight" && dx === 0) {
+          dx = gridSize;
+          dy = 0;
+          e.preventDefault();
+        }
+      });
+
+      setInterval(gameLoop, 120);
+
+      // -------------------------------------------------------------
+      // GREEN SCREEN SLIDE — chroma key cat.mp4 with a WebGL shader
+      // Every pixel is checked against the green backdrop on the GPU.
+      // -------------------------------------------------------------
+      const ckVideo = document.getElementById("ck-video");
+      let ckCanvas = document.getElementById("ck-canvas");
+      const ckStage = ckCanvas.parentElement;
+
+      // Caption lines over the cat (slide 13). Grabbed up here with the other
+      // refs because the keyer's fallback loops clear them, and those can start
+      // before the caption helpers further down are reached.
+      const ckCapRight = Array.from(
+        document.querySelectorAll("#ck-cap-right .ck-line"),
+      );
+      const ckCapLeft = Array.from(
+        document.querySelectorAll("#ck-cap-left .ck-line"),
+      );
+
+      // volume pill next to the KEY EDITOR button
+      const ckVolInput = document.getElementById("ck-vol");
+      const ckVolOut = document.getElementById("ck-vol-v");
+      const ckVolBox = document.getElementById("ck-vol-box");
+      const ckVolMuteBtn = document.getElementById("ck-vol-mute");
+      const ckVolMuteIcon = document.getElementById("ck-vol-icon");
+      const ckVolArrowBtn = document.getElementById("ck-vol-arrow");
+      const ckVolArrowIcon = document.getElementById("ck-vol-arrow-icon");
+
+      // metronome controls
+      const ckBpmInput = document.getElementById("ck-bpm");
+      const ckBpmOut = document.getElementById("ck-bpm-v");
+      const ckDelayInput = document.getElementById("ck-delay");
+      const ckDelayOut = document.getElementById("ck-delay-v");
+      const ckMetroBtn = document.getElementById("ck-metro-start");
+      const ckMetroMuteBtn = document.getElementById("ck-metro-mute");
+      const ckMetroMuteIcon = document.getElementById("ck-metro-mute-icon");
+      const ckTapBtn = document.getElementById("ck-tap");
+      const ckBeatDot = document.getElementById("ck-beat");
+      const ckSkipInput = document.getElementById("ck-skip");
+      const ckSkipOut = document.getElementById("ck-skip-v");
+      const ckEndInput = document.getElementById("ck-end");
+      const ckEndOut = document.getElementById("ck-end-v");
+      const ckAutoInput = document.getElementById("ck-metro-auto");
+
+      // beat fx controls + the light layer itself
+      const beatFxEl = document.getElementById("beat-fx");
+      const ckFxSelect = document.getElementById("ck-fx");
+      const ckFxColor = document.getElementById("ck-fx-color");
+      const ckFxInt = document.getElementById("ck-fx-int");
+      const ckFxIntOut = document.getElementById("ck-fx-int-v");
+      const ckFxAttack = document.getElementById("ck-fx-attack");
+      const ckFxAttackOut = document.getElementById("ck-fx-attack-v");
+      const ckFxRelease = document.getElementById("ck-fx-release");
+      const ckFxReleaseOut = document.getElementById("ck-fx-release-v");
+      const ckFxRandom = document.getElementById("ck-fx-random");
+
+      // shake controls (a parallel effect: it can run alongside any beat fx)
+      const ckShakeOn = document.getElementById("ck-shake");
+      const ckShakeAmt = document.getElementById("ck-shake-amt");
+      const ckShakeAmtOut = document.getElementById("ck-shake-amt-v");
+      const ckShakeRot = document.getElementById("ck-shake-rot");
+      const ckShakeRotOut = document.getElementById("ck-shake-rot-v");
+      const ckShakeCycles = document.getElementById("ck-shake-cycles");
+      const ckShakeCyclesOut = document.getElementById("ck-shake-cycles-v");
+      const ckShakeMs = document.getElementById("ck-shake-ms");
+      const ckShakeMsOut = document.getElementById("ck-shake-ms-v");
+
+      // ---- popup key editor -------------------------------------------------
+      // The panel is part of this page (#ck-editor, opened from slide 13) and
+      // its controls ARE the live key settings, so nothing about the key is
+      // hardcoded. Nothing to import either: it edits the cat on this slide.
+      const ckEditor = document.getElementById("ck-editor");
+      const ckKeyInput = document.getElementById("ck-key-color");
+      const ckSimInput = document.getElementById("ck-sim");
+      const ckSoftInput = document.getElementById("ck-soft");
+      const ckSpillInput = document.getElementById("ck-spill");
+      const ckSimOut = document.getElementById("ck-sim-v");
+      const ckSoftOut = document.getElementById("ck-soft-v");
+      const ckSpillOut = document.getElementById("ck-spill-v");
+      const ckPickBtn = document.getElementById("ck-pick");
+      const ckBgInput = document.getElementById("ck-bg-color");
+      const ckBgClear = document.getElementById("ck-bg-clear");
+      const ckHint = document.getElementById("ck-hint");
+
+      function ckRgbToHex(rgb) {
+        const c = (v) =>
+          Math.round(Math.min(1, Math.max(0, v)) * 255)
+            .toString(16)
+            .padStart(2, "0");
+        return "#" + c(rgb[0]) + c(rgb[1]) + c(rgb[2]);
+      }
+
+      function ckHexToRgb(hex) {
+        const n = parseInt(hex.slice(1), 16);
+        return [
+          ((n >> 16) & 255) / 255,
+          ((n >> 8) & 255) / 255,
+          (n & 255) / 255,
+        ];
+      }
+
+      function ckSettings() {
+        return {
+          key: ckKey.slice(),
+          similarity: ckSimilarity,
+          smoothness: ckSmoothness,
+          spill: ckSpill,
+          bg: ckBg,
+          vol: ckVol,
+          mute: ckMute,
+          bpm: metroBpm,
+          delayMs: metroDelayMs,
+          skip: metroSkip,
+          end: isFinite(metroEnd) ? metroEnd : null,
+          auto: ckMetroAuto,
+          metroMute: metroMute,
+          fx: beatFx,
+          fxColor: beatColor,
+          fxIntensity: beatIntensity,
+          fxAttack: beatAttack,
+          fxRelease: beatRelease,
+          fxRandom: beatRandom,
+          shake: shakeOn,
+          shakeAmount: shakeAmount,
+          shakeRotate: shakeRotate,
+          shakeCycles: shakeCycles,
+          shakeMs: shakeMs,
+        };
+      }
+
+      // Tuned values are remembered by the browser, not hardcoded in this file
+      function ckSaveSettings() {
+        try {
+          localStorage.setItem(CK_STORE, JSON.stringify(ckSettings()));
+        } catch (e) {
+          /* private mode — tuning just won't persist */
+        }
+      }
+
+      function ckApplySettings(s) {
+        if (!s) return;
+        if (Array.isArray(s.key) && s.key.length === 3) {
+          ckKey = s.key
+            .slice(0, 3)
+            .map((v) => Math.min(1, Math.max(0, +v || 0)));
+        }
+        if (isFinite(s.similarity))
+          ckSimilarity = Math.min(1, Math.max(0, +s.similarity));
+        if (isFinite(s.smoothness))
+          ckSmoothness = Math.min(0.5, Math.max(0, +s.smoothness));
+        if (isFinite(s.spill)) ckSpill = Math.min(1, Math.max(0, +s.spill));
+        if (typeof s.bg === "string" && /^#[0-9a-f]{3,8}$/i.test(s.bg)) {
+          ckBg = s.bg;
+        } else if (s.bg === null) {
+          ckBg = null; // null = let the slide's own background show through
+        }
+        if (isFinite(s.vol)) ckVol = Math.min(1, Math.max(0, +s.vol));
+        if (typeof s.mute === "boolean") ckMute = s.mute;
+        if (isFinite(s.bpm))
+          metroBpm = Math.min(240, Math.max(40, Math.round(+s.bpm)));
+        if (isFinite(s.delayMs))
+          metroDelayMs = Math.min(10000, Math.max(0, Math.round(+s.delayMs)));
+        if (isFinite(s.skip)) metroSkip = Math.max(0, Math.round(+s.skip));
+        // "end" is the one field where null/"" means infinity, so it is only
+        // touched when the caller actually sent one
+        if ("end" in s) {
+          metroEnd =
+            s.end === null || s.end === "" || !isFinite(s.end)
+              ? Infinity
+              : Math.max(0, Math.round(+s.end));
+        }
+        if (typeof s.auto === "boolean") ckMetroAuto = s.auto;
+        if (typeof s.metroMute === "boolean") metroMute = s.metroMute;
+        if (typeof s.fx === "string" && BEAT_FX[s.fx]) beatFx = s.fx;
+        if (typeof s.fxColor === "string" && /^#[0-9a-f]{3,8}$/i.test(s.fxColor))
+          beatColor = s.fxColor;
+        if (isFinite(s.fxIntensity))
+          beatIntensity = Math.min(1, Math.max(0, +s.fxIntensity));
+        if (isFinite(s.fxAttack))
+          beatAttack = Math.min(300, Math.max(5, Math.round(+s.fxAttack)));
+        if (isFinite(s.fxRelease))
+          beatRelease = Math.min(1500, Math.max(20, Math.round(+s.fxRelease)));
+        if (typeof s.fxRandom === "boolean") beatRandom = s.fxRandom;
+        if (typeof s.shake === "boolean") shakeOn = s.shake;
+        if (isFinite(s.shakeAmount))
+          shakeAmount = Math.min(60, Math.max(0, Math.round(+s.shakeAmount)));
+        if (isFinite(s.shakeRotate))
+          shakeRotate = Math.min(8, Math.max(0, +s.shakeRotate));
+        if (isFinite(s.shakeCycles))
+          shakeCycles = Math.min(12, Math.max(1, Math.round(+s.shakeCycles)));
+        if (isFinite(s.shakeMs))
+          shakeMs = Math.min(1200, Math.max(60, Math.round(+s.shakeMs)));
+        ckApplyVol();
+        ckApplyMetro();
+        ckApplyFx();
+        ckApplyBg();
+        ckSaveSettings();
+      }
+
+      // The clip's own volume. The speaker button mutes; the slider sets the
+      // level. A non-zero drag also lifts an autoplay mute, since dragging is
+      // the user gesture the browser wanted.
+      function ckApplyVol() {
+        const silent = ckMute || ckVol <= 0;
+        ckVideo.volume = ckVol;
+        ckVideo.muted = silent;
+        const pc = Math.round(ckVol * 100);
+        if (ckVolInput) ckVolInput.value = String(pc);
+        if (ckVolOut) ckVolOut.textContent = pc + "%";
+        if (ckVolBox) ckVolBox.classList.toggle("silent", silent);
+        if (ckVolMuteIcon) {
+          ckVolMuteIcon.classList.toggle("fa-volume-xmark", silent);
+          ckVolMuteIcon.classList.toggle("fa-volume-high", !silent);
+        }
+        if (ckVolMuteBtn)
+          ckVolMuteBtn.setAttribute("aria-pressed", silent ? "true" : "false");
+      }
+
+      // mirror the metronome settings into the panel
+      function ckApplyMetro() {
+        if (ckBpmInput) {
+          ckBpmInput.value = String(metroBpm);
+          if (ckBpmOut) ckBpmOut.textContent = String(metroBpm);
+        }
+        if (ckDelayInput) {
+          // don't fight the field the user is typing in
+          if (document.activeElement !== ckDelayInput)
+            ckDelayInput.value = String(metroDelayMs);
+          if (ckDelayOut)
+            ckDelayOut.textContent =
+              metroDelayMs + " ms (" + (metroDelayMs / 1000).toFixed(2) + " s)";
+        }
+        if (ckSkipInput) {
+          if (document.activeElement !== ckSkipInput)
+            ckSkipInput.value = String(metroSkip);
+          if (ckSkipOut) ckSkipOut.textContent = ckTickTime(metroSkip);
+        }
+        if (ckEndInput) {
+          if (document.activeElement !== ckEndInput)
+            ckEndInput.value = isFinite(metroEnd) ? String(metroEnd) : "";
+          if (ckEndOut)
+            ckEndOut.textContent = isFinite(metroEnd)
+              ? ckTickTime(metroEnd)
+              : "∞";
+        }
+        if (ckAutoInput) ckAutoInput.checked = ckMetroAuto;
+        if (ckMetroMuteBtn) {
+          ckMetroMuteBtn.classList.toggle("muted", metroMute);
+          ckMetroMuteBtn.setAttribute("aria-pressed", metroMute ? "true" : "false");
+          if (ckMetroMuteIcon) {
+            ckMetroMuteIcon.classList.toggle("fa-volume-xmark", metroMute);
+            ckMetroMuteIcon.classList.toggle("fa-volume-high", !metroMute);
+          }
+        }
+      }
+
+      // when a tick lands, measured from START — delay included, so this is the
+      // number to line a background effect up against
+      function ckTickTime(tick) {
+        return (metroDelayMs / 1000 + (tick * 60) / metroBpm).toFixed(2) + " s";
+      }
+
+      // mirror the beat fx and shake settings into the panel, and show a set of
+      // parameter rows only while the thing they belong to is on
+      function ckApplyFx() {
+        if (ckFxSelect) ckFxSelect.value = beatFx;
+        if (ckFxColor) {
+          ckFxColor.value = beatColor;
+          ckFxColor.disabled = beatRandom; // randomize picks the colour instead
+        }
+        if (ckFxRandom) ckFxRandom.checked = beatRandom;
+        if (ckFxInt) {
+          ckFxInt.value = String(beatIntensity);
+          if (ckFxIntOut) ckFxIntOut.textContent = beatIntensity.toFixed(2);
+        }
+        if (ckFxAttack) {
+          ckFxAttack.value = String(beatAttack);
+          if (ckFxAttackOut) ckFxAttackOut.textContent = beatAttack + " ms";
+        }
+        if (ckFxRelease) {
+          ckFxRelease.value = String(beatRelease);
+          if (ckFxReleaseOut) ckFxReleaseOut.textContent = beatRelease + " ms";
+        }
+        if (ckShakeOn) ckShakeOn.checked = shakeOn;
+        if (ckShakeAmt) {
+          ckShakeAmt.value = String(shakeAmount);
+          if (ckShakeAmtOut) ckShakeAmtOut.textContent = shakeAmount + " px";
+        }
+        if (ckShakeRot) {
+          ckShakeRot.value = String(shakeRotate);
+          if (ckShakeRotOut) ckShakeRotOut.textContent = shakeRotate.toFixed(1) + "°";
+        }
+        if (ckShakeCycles) {
+          ckShakeCycles.value = String(shakeCycles);
+          if (ckShakeCyclesOut) ckShakeCyclesOut.textContent = String(shakeCycles);
+        }
+        if (ckShakeMs) {
+          ckShakeMs.value = String(shakeMs);
+          if (ckShakeMsOut) ckShakeMsOut.textContent = shakeMs + " ms";
+        }
+        // the fx rows follow the selected effect: a row with data-param="light"
+        // belongs to the light, and an effect without that key shows none of them
+        const fx = BEAT_FX[beatFx] || {};
+        const rows = document.querySelectorAll(".fx-param");
+        for (let i = 0; i < rows.length; i++)
+          rows[i].hidden = !fx.params || rows[i].dataset.param !== fx.params;
+        const shakers = document.querySelectorAll(".shake-param");
+        for (let i = 0; i < shakers.length; i++) shakers[i].hidden = !shakeOn;
+        if (beatFxEl && !beatRandom) beatFxEl.style.background = beatColor;
+      }
+
+      // the backdrop of the video area (null → the slide's own background)
+      function ckApplyBg() {
+        ckStage.style.background = ckBg || "";
+      }
+
+      // mirror the live settings into the panel's controls
+      function ckSyncEditor() {
+        if (!ckEditor) return;
+        ckKeyInput.value = ckRgbToHex(ckKey);
+        ckSimInput.value = String(ckSimilarity);
+        ckSoftInput.value = String(ckSmoothness);
+        ckSpillInput.value = String(ckSpill);
+        if (ckBg) ckBgInput.value = ckBg;
+        ckSimOut.textContent = ckSimilarity.toFixed(2);
+        ckSoftOut.textContent = ckSmoothness.toFixed(2);
+        ckSpillOut.textContent = ckSpill.toFixed(2);
+      }
+
+      function ckEditorOpen() {
+        if (!ckEditor) return;
+        if (typeof goToSlide === "function") goToSlide(13); // show the cat
+        ckSyncEditor();
+        ckEditor.hidden = false;
+      }
+
+      function ckEditorClose() {
+        if (!ckEditor || ckEditor.hidden) return;
+        ckEditor.hidden = true;
+        ckStopPicking();
+      }
+
+      function ckEditorToggle() {
+        if (!ckEditor) return;
+        if (ckEditor.hidden) ckEditorOpen();
+        else ckEditorClose();
+      }
+
+      function ckEditorReset() {
+        // back to the shipped look — the same numbers the settings block below
+        // starts from, so RESET means the same thing as a first load
+        ckApplySettings({
+          key: [0, 1, 0],
+          similarity: 0,
+          smoothness: 0,
+          spill: 1,
+          bg: null,
+        });
+        ckBgInput.value = "#111111";
+        ckSyncEditor();
+        ckHint.textContent = "reset to defaults";
+      }
+
+      ckKeyInput.addEventListener("input", () => {
+        ckApplySettings({ key: ckHexToRgb(ckKeyInput.value) });
+        ckHint.textContent = "key colour set";
+      });
+
+      ckSimInput.addEventListener("input", () => {
+        ckApplySettings({ similarity: parseFloat(ckSimInput.value) });
+        ckSyncEditor();
+      });
+
+      ckSoftInput.addEventListener("input", () => {
+        ckApplySettings({ smoothness: parseFloat(ckSoftInput.value) });
+        ckSyncEditor();
+      });
+
+      ckSpillInput.addEventListener("input", () => {
+        ckApplySettings({ spill: parseFloat(ckSpillInput.value) });
+        ckSyncEditor();
+      });
+
+      ckBgInput.addEventListener("input", () => {
+        ckApplySettings({ bg: ckBgInput.value });
+        ckHint.textContent = "background set";
+      });
+
+      ckBgClear.addEventListener("click", () => {
+        ckApplySettings({ bg: null });
+        ckHint.textContent = "background cleared";
+      });
+
+      ckVolInput.addEventListener("input", () => {
+        // dragging the slider to a level means "I want to hear it"
+        ckMute = false;
+        ckApplySettings({ vol: parseFloat(ckVolInput.value) / 100 });
+      });
+
+      // speaker: mute / unmute
+      ckVolMuteBtn.addEventListener("click", () => {
+        ckMute = !ckMute;
+        if (!ckMute && ckVol <= 0) ckVol = 1; // unmuting from zero restores sound
+        ckApplySettings({ vol: ckVol, mute: ckMute });
+      });
+
+      // chevron: reveal / hide the slider (it grows to the left of the buttons)
+      ckVolArrowBtn.addEventListener("click", () => {
+        const open = ckVolBox.classList.toggle("open");
+        ckVolArrowBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        ckVolArrowBtn.setAttribute(
+          "aria-label",
+          open ? "Hide the volume slider" : "Show the volume slider",
+        );
+        ckVolArrowIcon.classList.toggle("fa-chevron-right", !open);
+        ckVolArrowIcon.classList.toggle("fa-chevron-left", open);
+      });
+
+      // -------------------------------------------------------------
+      // METRONOME - scheduled on the Web Audio clock
+      // -------------------------------------------------------------
+      // Web Audio rather than <audio> loops or bare setInterval: beats land on
+      // exact sample times, which is what makes this usable as the reference
+      // for beat-synced background effects later.
+      let metroCtx = null;
+      let metroOn = false;
+      let metroTimer = null;
+      let metroNext = 0; // audio-clock time of the next beat
+      let metroBeat = 0; // beats since START
+      let metroPending = false; // waiting for the audio clock to actually run
+      let metroVoices = []; // oscillators scheduled but not yet finished
+      let metroTaps = [];
+      let metroRun = 0; // bumped on every start/stop: stale beat pulses check it
+      let metroMute = true; // silence the click but keep the beats running
+      let metroUserStopped = false; // a STOP the user asked for outlives a loop
+      const METRO_AHEAD = 0.2; // seconds of beats scheduled in advance
+
+      function metroClick(at, accent, run) {
+        if (!metroMute) {
+          const osc = metroCtx.createOscillator();
+          const gain = metroCtx.createGain();
+          osc.type = "triangle";
+          osc.frequency.value = accent ? 1600 : 1080;
+          gain.gain.setValueAtTime(0, at);
+          gain.gain.linearRampToValueAtTime(accent ? 0.32 : 0.2, at + 0.002);
+          gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.05);
+          osc.connect(gain);
+          gain.connect(metroCtx.destination);
+          osc.start(at);
+          osc.stop(at + 0.06);
+          metroVoices.push(osc);
+          osc.onended = () => {
+            metroVoices = metroVoices.filter((v) => v !== osc);
+          };
+        }
+
+        // the lamp and the beat fx ride the same clock as the click
+        metroBeatPulse(at, run);
+      }
+
+      function metroSchedule() {
+        if (!metroCtx || !metroOn) return;
+        if (metroCtx.state !== "running") {
+          // the audio clock only starts once the browser has seen a gesture:
+          // hold the grid at "now" rather than scheduling into a frozen clock
+          metroPending = true;
+          return;
+        }
+        if (metroPending) {
+          metroPending = false;
+          metroBeat = 0;
+          metroNext = metroCtx.currentTime + metroDelayMs / 1000;
+        }
+        while (metroNext < metroCtx.currentTime + METRO_AHEAD) {
+          if (metroBeat >= metroEnd) {
+            metroFinish("metronome ended on tick " + metroEnd);
+            return;
+          }
+          // ticks before the skip are counted, just not clicked
+          if (metroBeat >= metroSkip) metroClick(metroNext, metroBeat % 4 === 0, metroRun);
+          metroNext += 60 / metroBpm;
+          metroBeat++;
+        }
+      }
+
+      function metroStart() {
+        if (metroOn) return;
+        try {
+          if (!metroCtx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) throw new Error("no Web Audio");
+            metroCtx = new Ctx();
+          }
+        } catch (e) {
+          ckHint.textContent = "no audio here: " + (e.message || e);
+          return;
+        }
+        // a suspended clock (no gesture yet, e.g. an auto start on page load)
+        // is waited on; the grid is anchored the moment it starts running
+        metroPending = metroCtx.state !== "running";
+        if (metroCtx.state === "suspended") {
+          const r = metroCtx.resume();
+          if (r && r.catch) r.catch(() => {});
+          document.addEventListener("click", metroResume, { once: true });
+        }
+        metroOn = true;
+        metroBeat = 0;
+        metroRun++; // anything queued by a previous run is now stale
+        metroUserStopped = false; // a fresh start is a fresh intent
+        // the delay is measured from the moment START is pressed
+        metroNext = metroCtx.currentTime + metroDelayMs / 1000;
+        metroTimer = setInterval(metroSchedule, 25);
+        metroSchedule();
+        ckMetroBtn.textContent = "STOP";
+        ckMetroBtn.classList.add("active");
+        ckHint.textContent =
+          "metronome " +
+          metroBpm +
+          " bpm" +
+          (metroDelayMs
+            ? ", from " + (metroDelayMs / 1000).toFixed(2) + "s"
+            : "") +
+          (metroSkip ? ", starting on tick " + metroSkip : "") +
+          (isFinite(metroEnd) ? ", ending on tick " + metroEnd : "");
+      }
+
+      function metroResume() {
+        if (metroCtx && metroCtx.state === "suspended") {
+          const r = metroCtx.resume();
+          if (r && r.catch) r.catch(() => {});
+        }
+      }
+
+      // stop scheduling; clicks already queued are left to sound out
+      function metroFinish(msg) {
+        if (metroTimer) clearInterval(metroTimer);
+        metroTimer = null;
+        metroOn = false;
+        if (ckBeatDot) ckBeatDot.classList.remove("on");
+        if (ckMetroBtn) {
+          ckMetroBtn.textContent = "START";
+          ckMetroBtn.classList.remove("active");
+        }
+        if (msg && ckHint) ckHint.textContent = msg;
+      }
+
+      // STOP pressed, or the slide was left: cut the sound straight away
+      function metroStop() {
+        metroUserStopped = true;
+        metroFinish("");
+        metroRun++; // drop any beat pulses (lamp/light/shake) still queued
+        // a light or a shake that is mid-flight is cut too, so nothing follows
+        // us off the slide
+        if (beatAnim && beatAnim.cancel) {
+          beatAnim.cancel();
+          beatAnim = null;
+        }
+        ckShakeCancel();
+        metroSilence();
+      }
+
+      // every click that is scheduled or still ringing, gone
+      function metroSilence() {
+        metroVoices.forEach((v) => {
+          try {
+            v.stop();
+          } catch (e) {
+            /* already stopped */
+          }
+        });
+        metroVoices = [];
+      }
+
+      // The clip loops (and is rewound when the slide opens). Put the beat grid
+      // back on the top of the clip, delay included, so a tick window keeps
+      // landing on the same moment of the cat every time round. Beats queued for
+      // the old alignment are dropped rather than left to fire out of place.
+      function metroReset() {
+        if (!metroCtx || !metroOn) return;
+        metroRun++;
+        metroSilence();
+        metroBeat = 0;
+        metroNext = metroCtx.currentTime + metroDelayMs / 1000;
+      }
+
+      // Auto start: the metronome belongs to slide 13, so opening that slide
+      // begins it (the delay still offsets the first beat).
+      function metroAutoStart() {
+        if (!ckMetroAuto || metroOn) return;
+        metroStart();
+      }
+
+      // -------------------------------------------------------------
+      // BEAT FX - fires on exactly the beats the metronome clicks on
+      // -------------------------------------------------------------
+      // Adding another effect is one line here; the panel's selector is built
+      // from this map, and rows marked .fx-param with a matching data-param show
+      // whenever that effect is selected.
+      const BEAT_FX = {
+        off: { label: "Off" },
+        flash: { label: "Background light", params: "light", fire: beatFlash },
+      };
+
+      // a fresh vivid hue for the Randomize option
+      function ckRandomLight() {
+        return "hsl(" + Math.floor(Math.random() * 360) + ", 100%, 62%)";
+      }
+
+      // the light: quick hit, smooth fall, over the whole site
+      function beatFlash() {
+        if (!beatFxEl) return;
+        if (beatRandom) beatFxEl.style.background = ckRandomLight();
+        const total = beatAttack + beatRelease;
+        if (beatAnim && beatAnim.cancel) beatAnim.cancel();
+        if (!beatFxEl.animate) {
+          // no Web Animations API: a plain two-step fade will do
+          beatFxEl.style.opacity = String(beatIntensity);
+          setTimeout(() => {
+            beatFxEl.style.opacity = "0";
+          }, beatAttack);
+          return;
+        }
+        beatAnim = beatFxEl.animate(
+          [
+            { opacity: 0, easing: "ease-out" },
+            { opacity: beatIntensity, offset: beatAttack / total },
+            { opacity: 0, easing: "ease-in" },
+          ],
+          { duration: total },
+        );
+      }
+
+      // -------------------------------------------------------------
+      // SHAKE - a parallel beat effect, so it layers with any Beat fx
+      // -------------------------------------------------------------
+      // The page chrome is jolted as one: a damped swing, written out as a
+      // keyframe list so the browser runs it on the compositor. body itself is
+      // never transformed, which keeps the fixed panel and the light layer
+      // anchored to the viewport instead of shaking with the page.
+      let shakeParts = null;
+
+      function ckShakeParts() {
+        if (!shakeParts)
+          shakeParts = Array.prototype.slice.call(
+            document.querySelectorAll("header, main, footer"),
+          );
+        return shakeParts;
+      }
+
+      function ckShakeCancel() {
+        shakeAnims.forEach((a) => {
+          if (a && a.cancel) a.cancel();
+        });
+        shakeAnims = [];
+      }
+
+      function beatShake() {
+        const steps = Math.max(12, Math.min(96, Math.round(shakeCycles * 16)));
+        // sample the damped swing first, so Amount and Rotate mean the real peak
+        // travel rather than how far a curve that has already decayed got
+        const samples = [];
+        let peak = 0;
+        let peakY = 0;
+        for (let i = 0; i <= steps; i++) {
+          const u = i / steps;
+          const env = Math.exp(-u * 3.5); // settles to ~3% by the end
+          const th = 2 * Math.PI * shakeCycles * u;
+          samples.push({ env: env, th: th });
+          peak = Math.max(peak, Math.abs(env * Math.sin(th)));
+          peakY = Math.max(peakY, Math.abs(env * Math.sin(2 * th)));
+        }
+        const norm = 1 / (peak || 1);
+        const normY = 1 / (peakY || 1);
+        const frames = samples.map((s) => {
+          const x = shakeAmount * s.env * Math.sin(s.th) * norm;
+          const y = shakeAmount * 0.5 * s.env * Math.sin(2 * s.th) * normY;
+          const r = shakeRotate * s.env * Math.sin(s.th) * norm;
+          return {
+            transform:
+              "translate(" +
+              x.toFixed(2) +
+              "px," +
+              y.toFixed(2) +
+              "px) rotate(" +
+              r.toFixed(3) +
+              "deg)",
+          };
+        });
+        ckShakeCancel();
+        const parts = ckShakeParts();
+        for (let i = 0; i < parts.length; i++) {
+          if (!parts[i].animate) continue; // no Web Animations API: no shake
+          shakeAnims.push(parts[i].animate(frames, { duration: shakeMs }));
+        }
+      }
+
+      // Everything that belongs to one beat: the lamp, the selected fx and the
+      // shake. It is scheduled from the very same beat the click is, so skip,
+      // end at, delay, the loop reset and "slide 13 is open" apply to all of it
+      // exactly as they do to the sound.
+      function metroBeatPulse(at, run) {
+        setTimeout(
+          () => {
+            if (run !== metroRun) return; // that run is over
+            if (ckBeatDot) {
+              ckBeatDot.classList.add("on");
+              setTimeout(() => ckBeatDot.classList.remove("on"), 90);
+            }
+            const fx = BEAT_FX[beatFx];
+            if (fx && fx.fire) fx.fire();
+            if (shakeOn) beatShake();
+          },
+          Math.max(0, (at - metroCtx.currentTime) * 1000),
+        );
+      }
+
+      // build the selector from the map above
+      if (ckFxSelect) {
+        ckFxSelect.textContent = "";
+        Object.keys(BEAT_FX).forEach((key) => {
+          const opt = document.createElement("option");
+          opt.value = key;
+          opt.textContent = BEAT_FX[key].label;
+          ckFxSelect.appendChild(opt);
+        });
+      }
+
+      // tap tempo: average the last few taps (session forgets them after 2.5 s)
+      function metroTap() {
+        const now = performance.now();
+        if (metroTaps.length && now - metroTaps[metroTaps.length - 1] > 2500)
+          metroTaps = [];
+        metroTaps.push(now);
+        if (metroTaps.length > 6) metroTaps.shift();
+        if (metroTaps.length < 2) {
+          ckHint.textContent = "tap along…";
+          return;
+        }
+        const span =
+          (metroTaps[metroTaps.length - 1] - metroTaps[0]) /
+          (metroTaps.length - 1);
+        const bpm = Math.round(60000 / span);
+        if (bpm < 40 || bpm > 240) {
+          ckHint.textContent = "tapped " + bpm + " bpm — out of range";
+          return;
+        }
+        ckApplySettings({ bpm: bpm });
+        ckHint.textContent = "tapped " + bpm + " bpm";
+      }
+
+      ckMetroBtn.addEventListener("click", () => {
+        if (metroOn) {
+          metroStop();
+          ckHint.textContent = "metronome stopped";
+        } else {
+          metroStart();
+        }
+      });
+
+      ckTapBtn.addEventListener("click", metroTap);
+
+      ckBpmInput.addEventListener("input", () => {
+        ckApplySettings({ bpm: parseInt(ckBpmInput.value, 10) });
+      });
+
+      ckDelayInput.addEventListener("input", () => {
+        ckApplySettings({ delayMs: parseInt(ckDelayInput.value, 10) });
+      });
+
+      ckSkipInput.addEventListener("input", () => {
+        ckApplySettings({ skip: parseInt(ckSkipInput.value, 10) });
+      });
+
+      ckEndInput.addEventListener("input", () => {
+        const v = ckEndInput.value.trim();
+        // an empty field is how "never ends" is spelled
+        ckApplySettings({ end: v === "" ? null : parseInt(v, 10) });
+      });
+
+      ckAutoInput.addEventListener("change", () => {
+        ckApplySettings({ auto: ckAutoInput.checked });
+      });
+
+      ckMetroMuteBtn.addEventListener("click", () => {
+        const mute = !metroMute;
+        ckApplySettings({ metroMute: mute });
+        // don't let a click that was already queued slip out after muting
+        if (mute) metroSilence();
+        ckHint.textContent = mute
+          ? "metronome muted — beats and lights keep running"
+          : "metronome sound on";
+      });
+
+      ckFxSelect.addEventListener("change", () => {
+        ckApplySettings({ fx: ckFxSelect.value });
+      });
+
+      ckFxColor.addEventListener("input", () => {
+        ckApplySettings({ fxColor: ckFxColor.value });
+      });
+
+      ckFxInt.addEventListener("input", () => {
+        ckApplySettings({ fxIntensity: parseFloat(ckFxInt.value) });
+      });
+
+      ckFxAttack.addEventListener("input", () => {
+        ckApplySettings({ fxAttack: parseInt(ckFxAttack.value, 10) });
+      });
+
+      ckFxRelease.addEventListener("input", () => {
+        ckApplySettings({ fxRelease: parseInt(ckFxRelease.value, 10) });
+      });
+
+      ckFxRandom.addEventListener("change", () => {
+        ckApplySettings({ fxRandom: ckFxRandom.checked });
+      });
+
+      ckShakeOn.addEventListener("change", () => {
+        ckApplySettings({ shake: ckShakeOn.checked });
+      });
+
+      ckShakeAmt.addEventListener("input", () => {
+        ckApplySettings({ shakeAmount: parseInt(ckShakeAmt.value, 10) });
+      });
+
+      ckShakeRot.addEventListener("input", () => {
+        ckApplySettings({ shakeRotate: parseFloat(ckShakeRot.value) });
+      });
+
+      ckShakeCycles.addEventListener("input", () => {
+        ckApplySettings({ shakeCycles: parseInt(ckShakeCycles.value, 10) });
+      });
+
+      ckShakeMs.addEventListener("input", () => {
+        ckApplySettings({ shakeMs: parseInt(ckShakeMs.value, 10) });
+      });
+
+      // eyedropper: sample the clip's own pixels by clicking the cat
+      let ckPicking = false;
+      const ckPickCanvas = document.createElement("canvas");
+      const ckPickCtx = ckPickCanvas.getContext("2d", {
+        willReadFrequently: true,
+      });
+
+      function ckStopPicking() {
+        ckPicking = false;
+        ckPickBtn.classList.remove("active");
+        ckStage.classList.remove("picking");
+      }
+
+      ckPickBtn.addEventListener("click", () => {
+        ckPicking = !ckPicking;
+        ckPickBtn.classList.toggle("active", ckPicking);
+        ckStage.classList.toggle("picking", ckPicking);
+        ckHint.textContent = ckPicking ? "click the cat" : "";
+      });
+
+      ckStage.addEventListener("click", (e) => {
+        if (!ckPicking || !ckVideo.videoWidth) return;
+        const rect = ckCanvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) {
+          ckHint.textContent = "video not on screen";
+          ckStopPicking();
+          return;
+        }
+        const nx = (e.clientX - rect.left) / rect.width;
+        const ny = (e.clientY - rect.top) / rect.height;
+        const vw = ckVideo.videoWidth;
+        const vh = ckVideo.videoHeight;
+        const px = Math.max(0, Math.min(vw - 1, Math.floor(nx * vw)));
+        const py = Math.max(0, Math.min(vh - 1, Math.floor(ny * vh)));
+        try {
+          ckPickCanvas.width = vw;
+          ckPickCanvas.height = vh;
+          ckPickCtx.drawImage(ckVideo, 0, 0, vw, vh);
+          const S = 2; // average a small patch, not one noisy pixel
+          const x0 = Math.max(0, px - S);
+          const y0 = Math.max(0, py - S);
+          const w = Math.min(vw - x0, S * 2 + 1);
+          const h = Math.min(vh - y0, S * 2 + 1);
+          const data = ckPickCtx.getImageData(x0, y0, w, h).data;
+          let r = 0,
+            g = 0,
+            b = 0,
+            n = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            n++;
+          }
+          ckApplySettings({ key: [r / n / 255, g / n / 255, b / n / 255] });
+          ckSyncEditor();
+          ckHint.textContent = "key colour picked";
+        } catch (err) {
+          ckHint.textContent = "pixels blocked here — use the swatch";
+        }
+        ckStopPicking();
+      });
+
+      // Handy from the console too:
+      //   ckApplySettings({ similarity: 0.22, smoothness: 0.08 })
+      window.ckApplySettings = ckApplySettings;
+
+      // Opened straight from disk (file://), the browser will not give a canvas
+      // or WebGL a single pixel of a local video — keying is impossible no
+      // matter which technique is used. So there the clip is played from an
+      // in-page copy instead (catvideo.js), which is readable. Without that
+      // file we fall through to the other keyers, matte included.
+      let ckArmed = true;
+      if (location.protocol === "file:") {
+        ckArmed = false; // don't key the unreadable original
+        const ckData = document.createElement("script");
+        ckData.src = "catvideo.js";
+        ckData.onload = function () {
+          try {
+            const bin = atob(window.CAT_MP4_B64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            ckVideo.src = URL.createObjectURL(
+              new Blob([bytes], { type: "video/mp4" }),
+            );
+          } catch (e) {
+            console.error("[cat keyer] in-page clip failed:", e.message);
+          }
+          ckArmed = true;
+        };
+        ckData.onerror = function () {
+          console.error("[cat keyer] catvideo.js missing");
+          ckArmed = true;
+        };
+        document.head.appendChild(ckData);
+      }
+
+      const CK_VS = [
+        "attribute vec2 aPos;",
+        "varying vec2 vTextureCoord;",
+        "void main(void) {",
+        "  vTextureCoord = aPos * 0.5 + 0.5;",
+        "  gl_Position = vec4(aPos, 0.0, 1.0);",
+        "}",
+      ].join("\n");
+
+      // Same maths the popup key editor uses (chroma distance + despill), so
+      // the numbers dialled in the popup mean exactly the same thing here.
+      const CK_FS = [
+        "precision mediump float;",
+        "varying vec2 vTextureCoord;",
+        "uniform sampler2D uSampler;",
+        "uniform vec3  uKey;", // backdrop colour, RGB 0..1
+        "uniform float uSimilarity;", // key radius in chroma space
+        "uniform float uSmoothness;", // soft edge width
+        "uniform float uSpill;", // 0 = off, 1 = full despill
+        "",
+        "// Cb/Cr part of YCbCr — ignores brightness, so uneven green still keys",
+        "vec2 chroma(vec3 c) {",
+        "  return vec2(",
+        "    dot(c, vec3(-0.168736, -0.331264, 0.5)),",
+        "    dot(c, vec3( 0.5,      -0.418688, -0.081312))",
+        "  );",
+        "}",
+        "",
+        "void main(void) {",
+        "  vec3 rgb = texture2D(uSampler, vTextureCoord).rgb;",
+        "  float d = distance(chroma(rgb), chroma(uKey));",
+        "  float alpha = smoothstep(uSimilarity, uSimilarity + max(uSmoothness, 0.001), d);",
+        "  // Despill: pull the key colour's channel back toward the others so",
+        "  // half-transparent edge pixels don't keep a green fringe",
+        "  float m;",
+        "  if (uKey.g >= uKey.r && uKey.g >= uKey.b) {",
+        "    m = max(rgb.r, rgb.b);",
+        "    rgb.g = mix(rgb.g, min(rgb.g, m), uSpill);",
+        "  } else if (uKey.r >= uKey.g && uKey.r >= uKey.b) {",
+        "    m = max(rgb.g, rgb.b);",
+        "    rgb.r = mix(rgb.r, min(rgb.r, m), uSpill);",
+        "  } else {",
+        "    m = max(rgb.r, rgb.g);",
+        "    rgb.b = mix(rgb.b, min(rgb.b, m), uSpill);",
+        "  }",
+        "  gl_FragColor = vec4(rgb, alpha);",
+        "}",
+      ].join("\n");
+
+      let ckGL,
+        ckProg,
+        ckU = {};
+      let ckMode = "gl"; // "gl" (GPU) → "cpu" (fallback) → "off" (raw video)
+      let ckLogged = false; // one-shot console report, proves which build is live
+
+      // One-word report in the deck footer: which keying is actually live.
+      const ckStatusEl = document.getElementById("ck-status");
+      let ckShown = "";
+      function ckLabel(text) {
+        if (ckShown === text) return;
+        ckShown = text;
+        ckStatusEl.textContent = text;
+      }
+      function ckModeLabel() {
+        return ckMode === "gl"
+          ? " · keyer: GPU"
+          : ckMode === "cpu"
+            ? " · keyer: CPU"
+            : " · keyer: matte";
+      }
+      // Live key settings. The popup panel owns these and edits them directly;
+      // the shader and CPU path below use exactly the same maths, so what you
+      // dial in the panel is what the slide shows.
+      // The values below are the panel tuning this deck ships with: dialled in
+      // once, then copied out of localStorage, so a browser that has never
+      // stored anything (a fresh deploy, another machine, a visitor) opens on
+      // the very same frame. The panel's RESET returns to these too.
+      let ckKey = [0, 1, 0]; // backdrop colour, RGB 0..1
+      let ckSimilarity = 0; // tolerance: 0 keys out the backdrop and nothing else
+      let ckSmoothness = 0; // edge softness
+      let ckSpill = 1;
+      let ckBg = null; // colour behind the video area; null → slide background
+      let ckVol = 0.75; // 0..1, the cat clip's own volume
+      let ckMute = false; // speaker-button state
+      let metroBpm = 151; // metronome tempo
+      let metroDelayMs = 180; // wait before the first beat, in ms
+      let metroSkip = 11; // ticks counted but left silent
+      let metroEnd = Infinity; // tick to stop on
+      let ckMetroAuto = true; // start by itself when slide 13 opens
+
+      // beat fx: what fires on a metronome beat, and how the light behaves
+      let beatFx = "flash"; // key into BEAT_FX
+      let beatColor = "#ff00f7"; // colour of the light
+      let beatIntensity = 0.2; // peak opacity of the flash
+      let beatAttack = 5; // ms to reach the peak
+      let beatRelease = 290; // ms to fall back to nothing
+      let beatRandom = true; // a fresh hue every beat instead of beatColor
+      let beatAnim = null; // running flash animation
+
+      // shake: a parallel beat effect, so it layers with whatever Beat fx is on
+      let shakeOn = true;
+      let shakeAmount = 12; // peak travel in px
+      let shakeRotate = 1.2; // peak twist in degrees
+      let shakeCycles = 3; // how many back-and-forths
+      let shakeMs = 260; // total length of the jolt
+      let shakeAnims = []; // running shake animations
+
+      // Values tuned in the panel are kept by the browser, so a reload doesn't
+      // lose them — and the auto-detect below won't clobber a picked colour.
+      const CK_STORE = "ck-key-settings";
+      let ckKeySaved = false;
+      try {
+        const saved = JSON.parse(localStorage.getItem(CK_STORE) || "null");
+        if (saved) {
+          ckApplySettings(saved);
+          ckKeySaved = Array.isArray(saved.key);
+        } else {
+          // Nothing stored on this browser yet (a fresh deploy, another
+          // machine): push the shipped values into the player and the panel so
+          // it opens on the same frame they were tuned on. Called directly
+          // instead of through ckApplySettings() so that nothing is written
+          // back to storage — the panel stays the only thing that saves.
+          ckApplyVol();
+          ckApplyMetro();
+          ckApplyFx();
+          ckApplyBg();
+          // a shipped key colour is as deliberate as a picked one: the one-shot
+          // auto-detect below must not sample over it
+          ckKeySaved = true;
+        }
+      } catch (e) {
+        /* first run - the defaults stand */
+      }
+      // the fx selector is built earlier in the script, so the saved choice can
+      // be shown now that every setting it needs has been declared
+      ckApplyFx();
+
+      // No pixel access available (e.g. the file was opened straight from
+      // disk): hand the keying to the SVG filter defined in the slide markup
+      function ckFallback(msg) {
+        ckMode = "off";
+        ckStage.classList.add("ck-fallback");
+        console.error("[cat keyer] using SVG filter matte: " + (msg || "n/a"));
+      }
+
+      // Play with sound; if the browser's autoplay policy blocks it, keep it
+      // muted so the cat still dances and restore audio on the next click.
+      function ckPlay() {
+        if (!ckVideo.paused) return;
+        const p = ckVideo.play();
+        if (p && p.catch) p.catch(ckSoundBlocked);
+      }
+
+      function ckSoundBlocked() {
+        if (ckVideo.muted) return;
+        ckVideo.muted = true;
+        const p = ckVideo.play();
+        if (p && p.catch) p.catch(() => {});
+        document.addEventListener("click", ckApplyVol, { once: true });
+      }
+
+      function ckCompile(type, src) {
+        const sh = ckGL.createShader(type);
+        ckGL.shaderSource(sh, src);
+        ckGL.compileShader(sh);
+        if (!ckGL.getShaderParameter(sh, ckGL.COMPILE_STATUS)) {
+          throw new Error(ckGL.getShaderInfoLog(sh) || "compile failed");
+        }
+        return sh;
+      }
+
+      try {
+        const opts = {
+          alpha: true,
+          premultipliedAlpha: false,
+          antialias: false,
+        };
+        ckGL =
+          ckCanvas.getContext("webgl", opts) ||
+          ckCanvas.getContext("experimental-webgl", opts);
+        if (!ckGL) throw new Error("no webgl");
+
+        ckProg = ckGL.createProgram();
+        ckGL.attachShader(ckProg, ckCompile(ckGL.VERTEX_SHADER, CK_VS));
+        ckGL.attachShader(ckProg, ckCompile(ckGL.FRAGMENT_SHADER, CK_FS));
+        ckGL.linkProgram(ckProg);
+        if (!ckGL.getProgramParameter(ckProg, ckGL.LINK_STATUS)) {
+          throw new Error(ckGL.getProgramInfoLog(ckProg) || "link failed");
+        }
+        ckGL.useProgram(ckProg);
+
+        const buf = ckGL.createBuffer();
+        ckGL.bindBuffer(ckGL.ARRAY_BUFFER, buf);
+        ckGL.bufferData(
+          ckGL.ARRAY_BUFFER,
+          new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+          ckGL.STATIC_DRAW,
+        );
+        const aPos = ckGL.getAttribLocation(ckProg, "aPos");
+        ckGL.enableVertexAttribArray(aPos);
+        ckGL.vertexAttribPointer(aPos, 2, ckGL.FLOAT, false, 0, 0);
+
+        const tex = ckGL.createTexture();
+        ckGL.bindTexture(ckGL.TEXTURE_2D, tex);
+        ckGL.texParameteri(
+          ckGL.TEXTURE_2D,
+          ckGL.TEXTURE_WRAP_S,
+          ckGL.CLAMP_TO_EDGE,
+        );
+        ckGL.texParameteri(
+          ckGL.TEXTURE_2D,
+          ckGL.TEXTURE_WRAP_T,
+          ckGL.CLAMP_TO_EDGE,
+        );
+        ckGL.texParameteri(
+          ckGL.TEXTURE_2D,
+          ckGL.TEXTURE_MIN_FILTER,
+          ckGL.LINEAR,
+        );
+        ckGL.texParameteri(
+          ckGL.TEXTURE_2D,
+          ckGL.TEXTURE_MAG_FILTER,
+          ckGL.LINEAR,
+        );
+        ckGL.pixelStorei(ckGL.UNPACK_FLIP_Y_WEBGL, true);
+        ckGL.disable(ckGL.BLEND); // straight alpha → clean transparency
+        ckGL.clearColor(0, 0, 0, 0);
+
+        ckU.sampler = ckGL.getUniformLocation(ckProg, "uSampler");
+        ckU.key = ckGL.getUniformLocation(ckProg, "uKey");
+        ckU.similarity = ckGL.getUniformLocation(ckProg, "uSimilarity");
+        ckU.smoothness = ckGL.getUniformLocation(ckProg, "uSmoothness");
+        ckU.spill = ckGL.getUniformLocation(ckProg, "uSpill");
+        ckGL.uniform1i(ckU.sampler, 0);
+      } catch (e) {
+        ckStartCPU("WebGL unavailable: " + (e.message || e));
+      }
+
+      // One-shot: read the clip's corner so we key out its actual green
+      ckVideo.addEventListener("loadeddata", function () {
+        try {
+          const off = document.createElement("canvas");
+          off.width = off.height = 32;
+          const c = off.getContext("2d");
+          c.drawImage(ckVideo, 0, 0, 32, 32);
+          const p = c.getImageData(2, 2, 1, 1).data;
+          const r = p[0] / 255,
+            g = p[1] / 255,
+            b = p[2] / 255;
+          const max = Math.max(r, g, b),
+            min = Math.min(r, g, b);
+          if (max - min > 0.15 && !ckKeySaved) {
+            // saturated corner → treat it as the backdrop colour, unless a
+            // colour picked in the panel is already saved
+            ckKey = [r, g, b];
+            ckSyncEditor(); // panel, if open, shows the same colour
+          }
+        } catch (e) {
+          /* keep the default green */
+        }
+      });
+
+      // Cb/Cr of an RGB triple — the same constants the shader uses
+      function ckChroma(r, g, b) {
+        return [
+          r * -0.168736 + g * -0.331264 + b * 0.5,
+          r * 0.5 + g * -0.418688 + b * -0.081312,
+        ];
+      }
+
+      // Fallback: same key on the CPU at reduced size (used if WebGL is out)
+      function ckStartCPU(reason) {
+        console.error("[cat keyer] falling back to CPU keyer:", reason);
+        ckMode = "cpu";
+        // a canvas only ever holds one context type, so swap in a fresh one
+        const fresh = ckCanvas.cloneNode(false);
+        ckCanvas.replaceWith(fresh);
+        ckCanvas = fresh;
+        const ctx2d = ckCanvas.getContext("2d");
+        const tmp = document.createElement("canvas");
+        const tctx = tmp.getContext("2d", { willReadFrequently: true });
+        if (!ctx2d || !tctx) {
+          return ckFallback("no canvas context (" + reason + ")");
+        }
+
+        function cpuFrame() {
+          requestAnimationFrame(cpuFrame);
+          if (ckMode !== "cpu") return;
+
+          if (currentSlide !== 13) {
+            ckLabel("");
+            ckResetPlayback(); // rewind: the animation replays next visit
+            ckEditorClose(); // the panel belongs to the cat slide
+            return;
+          }
+          ckPlay();
+          ckLabel(ckModeLabel());
+          if (ckVideo.readyState < 2 || !ckVideo.videoWidth) return;
+
+          const W = 640;
+          const H = Math.round((W * ckVideo.videoHeight) / ckVideo.videoWidth);
+          if (ckCanvas.width !== W || ckCanvas.height !== H) {
+            ckCanvas.width = W;
+            ckCanvas.height = H;
+            tmp.width = W;
+            tmp.height = H;
+          }
+
+          try {
+            tctx.drawImage(ckVideo, 0, 0, W, H);
+            const img = tctx.getImageData(0, 0, W, H);
+            const d = img.data;
+            const kc = ckChroma(ckKey[0], ckKey[1], ckKey[2]);
+            const soft = Math.max(ckSmoothness, 0.001);
+            const greenKey = ckKey[1] >= ckKey[0] && ckKey[1] >= ckKey[2];
+            const redKey =
+              !greenKey && ckKey[0] >= ckKey[1] && ckKey[0] >= ckKey[2];
+            for (let i = 0; i < d.length; i += 4) {
+              let r = d[i] / 255,
+                g = d[i + 1] / 255,
+                b = d[i + 2] / 255;
+              const cc = ckChroma(r, g, b);
+              const dist = Math.hypot(cc[0] - kc[0], cc[1] - kc[1]);
+              // same smoothstep ramp the shader uses
+              const t = Math.min(1, Math.max(0, (dist - ckSimilarity) / soft));
+              d[i + 3] = Math.round(255 * t * t * (3 - 2 * t));
+              // despill, same rule the shader uses
+              let m;
+              if (greenKey) {
+                m = Math.max(r, b);
+                g += (Math.min(g, m) - g) * ckSpill;
+              } else if (redKey) {
+                m = Math.max(g, b);
+                r += (Math.min(r, m) - r) * ckSpill;
+              } else {
+                m = Math.max(r, g);
+                b += (Math.min(b, m) - b) * ckSpill;
+              }
+              d[i] = Math.round(r * 255);
+              d[i + 1] = Math.round(g * 255);
+              d[i + 2] = Math.round(b * 255);
+            }
+            ctx2d.putImageData(img, 0, 0);
+          } catch (e) {
+            ckFallback(
+              "frames blocked (" +
+                (e.name || "error") +
+                ")",
+            );
+          }
+        }
+        cpuFrame();
+      }
+
+      // -------------------------------------------------------------
+      // SLIDE 13 CAPTIONS - timed off the video's own clock
+      // -------------------------------------------------------------
+      // Reading currentTime instead of running a one-shot CSS animation means
+      // the captions restart by themselves when the clip loops, and
+      // ckResetPlayback() rewinds clip and captions together on leaving.
+      // (The .ck-line lists are declared up with the other slide-13 refs.)
+
+      // fade-in times, in seconds from the start of their part of the clip
+      const CK_FADE = 0.7; // how long one line takes to appear
+      const CK_RIGHT_IN = [0.6, 2.1]; // "That's the end", "of our presentation"
+      const CK_RIGHT_OUT = 0.4; // right block starts leaving 40% into the quarter
+      const CK_LEFT_IN = [0, 1, 2.1, 3.3]; // Thank you → Concluded!, after it goes
+
+      function ckFade01(v) {
+        return v < 0 ? 0 : v > 1 ? 1 : v;
+      }
+
+      function ckPutLine(el, alpha) {
+        el.style.opacity = alpha.toFixed(3);
+        el.style.transform =
+          "translateY(" + ((1 - alpha) * 14).toFixed(2) + "px)";
+      }
+
+      function ckCaptions() {
+        const d = ckVideo.duration;
+        if (!isFinite(d) || d <= 0) return;
+        const t = ckVideo.currentTime;
+        const q = d * 0.25; // "1/4 the length of the video"
+
+        // first quarter, right of the cat: in, then out again
+        const outAt = Math.max(q * CK_RIGHT_OUT, CK_RIGHT_IN[1] + CK_FADE);
+        const rightGone = outAt + CK_FADE; // right block now fully faded away
+        for (let i = 0; i < ckCapRight.length; i++) {
+          const inA = ckFade01((t - CK_RIGHT_IN[i]) / CK_FADE);
+          const outA = 1 - ckFade01((t - outAt) / CK_FADE);
+          ckPutLine(ckCapRight[i], t >= q ? 0 : inA * outA);
+        }
+
+        // left of the cat: takes over the moment the right block has gone, and
+        // stays for the rest of the clip
+        for (let i = 0; i < ckCapLeft.length; i++) {
+          ckPutLine(
+            ckCapLeft[i],
+            ckFade01((t - (rightGone + CK_LEFT_IN[i])) / CK_FADE),
+          );
+        }
+      }
+
+      // rewind the clip and clear its captions (called when slide 13 goes away)
+      function ckResetPlayback() {
+        if (!ckVideo.paused) ckVideo.pause();
+        if (ckVideo.currentTime > 0.05) ckVideo.currentTime = 0;
+        ckCapRight.forEach((el) => ckPutLine(el, 0));
+        ckCapLeft.forEach((el) => ckPutLine(el, 0));
+      }
+
+      // The metronome is slide 13's: opening that slide auto-starts it and
+      // leaving stops it, whatever keyer mode is running and whether or not the
+      // panel happens to be open.
+      let ckLastSlide = null;
+      let ckLastTime = -1; // last currentTime seen, for spotting the wrap
+
+      // The clip loops every 50.83 s. On each wrap the beat grid goes back to the
+      // top of the clip (delay included), so skip/end-at keep landing on the same
+      // moment of the cat instead of drifting a little further every time round.
+      function ckOnVideoLoop() {
+        if (metroOn) {
+          metroReset();
+          return;
+        }
+        // it ended on its own (the End-at tick), so let the window replay - but a
+        // STOP the user asked for stays a stop
+        if (ckMetroAuto && !metroUserStopped) metroAutoStart();
+      }
+
+      (function ckCaptionLoop() {
+        requestAnimationFrame(ckCaptionLoop);
+        if (currentSlide !== ckLastSlide) {
+          if (currentSlide === 13) metroAutoStart();
+          else metroStop();
+          ckLastTime = -1; // the clip is rewound when the slide opens
+          ckLastSlide = currentSlide;
+        }
+        if (currentSlide !== 13) return;
+        ckCaptions();
+        const now = ckVideo.currentTime;
+        if (ckLastTime >= 0 && now + 0.5 < ckLastTime) ckOnVideoLoop();
+        ckLastTime = now;
+      })();
+
+      // A deck that is switched away from (another tab, the outro page, another
+      // window) used to keep the clip running with its sound on, so the cat's
+      // track could be heard on top of whatever came next. Going off screen now
+      // does what leaving the slide does: the clip stops and rewinds and the
+      // metronome goes quiet. Coming back counts as a fresh slide entry, so both
+      // start again from the top when the cat slide is the one on screen.
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) return;
+        if (currentSlide === 13) ckResetPlayback();
+        if (metroOn) metroStop();
+        ckLastSlide = null;
+      });
+
+      function ckFrame() {
+        requestAnimationFrame(ckFrame);
+
+        // on file:// wait until the readable in-page copy is in place
+        if (!ckArmed) return;
+
+        // the clip plays only while slide 13 is on screen (works in every mode)
+        if (currentSlide !== 13) {
+          ckLabel("");
+          ckResetPlayback(); // rewind: the animation replays next visit
+          ckEditorClose(); // the panel belongs to the cat slide
+          return;
+        }
+        ckPlay();
+        ckLabel(ckModeLabel());
+        if (ckMode !== "gl" || !ckGL) return;
+
+        if (ckVideo.readyState < 2 || !ckVideo.videoWidth) return;
+
+        if (!ckLogged) {
+          ckLogged = true;
+          console.log(
+            "[cat keyer] build 2026-10-17f — mode " +
+              ckMode +
+              ", source " +
+              (ckVideo.currentSrc || ckVideo.src || "")
+                .split("/")
+                .pop()
+                .slice(0, 28) +
+              ", " +
+              ckVideo.videoWidth +
+              "x" +
+              ckVideo.videoHeight,
+          );
+        }
+
+        if (
+          ckCanvas.width !== ckVideo.videoWidth ||
+          ckCanvas.height !== ckVideo.videoHeight
+        ) {
+          ckCanvas.width = ckVideo.videoWidth;
+          ckCanvas.height = ckVideo.videoHeight;
+        }
+
+        ckGL.viewport(0, 0, ckCanvas.width, ckCanvas.height);
+        ckGL.activeTexture(ckGL.TEXTURE0);
+        try {
+          ckGL.texImage2D(
+            ckGL.TEXTURE_2D,
+            0,
+            ckGL.RGBA,
+            ckGL.RGBA,
+            ckGL.UNSIGNED_BYTE,
+            ckVideo,
+          );
+        } catch (e) {
+          ckStartCPU("GPU texture blocked (" + (e.name || "error") + ")");
+          return;
+        }
+        ckGL.uniform3f(ckU.key, ckKey[0], ckKey[1], ckKey[2]);
+        ckGL.uniform1f(ckU.similarity, ckSimilarity);
+        ckGL.uniform1f(ckU.smoothness, ckSmoothness);
+        ckGL.uniform1f(ckU.spill, ckSpill);
+        ckGL.drawArrays(ckGL.TRIANGLE_STRIP, 0, 4);
+      }
+
+      ckFrame();
+
+      // -------------------------------------------------------------
+      // BOOT
+      // -------------------------------------------------------------
+      render();
+      drawSnake();
+    </script>
+  </body>
+</html>

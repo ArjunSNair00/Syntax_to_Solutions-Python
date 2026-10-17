@@ -1,0 +1,1155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2B689C" />
+    <title>Syntax to Solutions | Python Study Jam - TinkerHub CEK</title>
+    <meta
+      name="description"
+      content="Three days to go from Python fundamentals to problem-solving and collaborative building. Snake Bytes, Logic Unlocked and Function Junction - no prior experience required."
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Fira+Code:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232B689C'/%3E%3Ctext x='4' y='23' font-family='monospace' font-size='16' font-weight='bold' fill='%23FDD848'%3E%3E_%3C/text%3E%3C/svg%3E"
+    />
+
+    <style>
+      /* --- DESIGN TOKENS: sampled straight off the artwork --- */
+      :root {
+        --blue: #2b689c; /* the blue band */
+        --blue-deep: #23557e;
+        --yellow: #fdd848; /* the yellow field */
+        --cream: #ffdf5a; /* the date boxes */
+        --ink: #000000;
+        --paper: #ffffff;
+        --red: #ff0000; /* the print() accent */
+        --ink-soft: rgba(0, 0, 0, 0.66);
+        --ink-faint: rgba(0, 0, 0, 0.4);
+        --on-blue-soft: rgba(255, 255, 255, 0.86);
+
+        --font-heading: "Anton", sans-serif;
+        --font-mono: "Fira Code", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        border-radius: 0; /* hard edges */
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background-color: var(--yellow);
+        /* faint grid, kept from the decks so the flat colour still has depth */
+        background-image:
+          radial-gradient(rgba(0, 0, 0, 0.055) 1px, transparent 0),
+          linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        background-size:
+          24px 24px,
+          40px 40px,
+          40px 40px;
+        background-attachment: fixed;
+        color: var(--ink);
+        font-family: var(--font-mono);
+        font-size: 16px;
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      ::selection {
+        background: var(--ink);
+        color: var(--yellow);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .wrap {
+        width: 100%;
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      /* --- SCROLL PROGRESS --- */
+      .progress-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 100;
+      }
+      .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: var(--red);
+        transition: width 0.1s linear;
+      }
+
+      /* --- TOP BAR (blue, flows into the hero) --- */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--blue);
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
+      }
+      .topbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.8rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      .wordmark {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        letter-spacing: 0.02em;
+      }
+      .wordmark strong {
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        letter-spacing: 0.06em;
+        color: var(--paper);
+        font-weight: normal;
+      }
+      .wordmark span {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.7rem;
+      }
+      .topbar-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.78);
+        white-space: nowrap;
+      }
+      .topbar-meta .live {
+        color: var(--yellow);
+      }
+
+      /* --- BADGES (white outline on blue, as on the artwork) --- */
+      .tag-badge {
+        font-size: 0.7rem;
+        letter-spacing: 0.09em;
+        padding: 3px 9px;
+        border: 2px solid var(--paper);
+        color: var(--paper);
+        background: transparent;
+        white-space: nowrap;
+        display: inline-block;
+      }
+      /* the yellow "date box" treatment */
+      .tag-badge.solid {
+        background: var(--yellow);
+        color: var(--ink);
+        border: 2px solid var(--ink);
+        box-shadow: 3px 3px 0 var(--ink);
+        font-weight: 600;
+      }
+      .day-card .tag-badge {
+        border: 2px solid var(--ink);
+        color: var(--ink);
+      }
+      .day-card .tag-badge.dim {
+        border-width: 1px;
+        border-color: var(--ink-faint);
+        color: var(--ink-faint);
+      }
+
+      /* --- BUTTONS --- */
+      .btn-neon {
+        background-color: var(--yellow);
+        color: var(--ink);
+        font-family: var(--font-heading);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 0.8rem 1.5rem;
+        border: 2px solid var(--ink);
+        cursor: pointer;
+        box-shadow: 5px 5px 0 var(--ink);
+        transition: all 0.15s ease-in-out;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 1rem;
+      }
+      .btn-neon:hover {
+        background: var(--paper);
+        transform: translate(-2px, -2px);
+        box-shadow: 7px 7px 0 var(--ink);
+      }
+      .btn-neon:active {
+        transform: translate(0, 0);
+        box-shadow: 2px 2px 0 var(--ink);
+      }
+
+      .btn-outline {
+        border: 2px solid var(--paper);
+        color: var(--paper);
+        background: transparent;
+        padding: 0.8rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        font-family: var(--font-mono);
+      }
+      .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      a:focus-visible,
+      button:focus-visible {
+        outline: 3px solid var(--red);
+        outline-offset: 3px;
+      }
+
+      /* --- HERO: the blue band, cut on a diagonal like the artwork --- */
+      .hero {
+        position: relative;
+        background-color: var(--blue);
+        background-image:
+          radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 0),
+          linear-gradient(
+            to right,
+            rgba(255, 255, 255, 0.05) 1px,
+            transparent 1px
+          ),
+          linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.05) 1px,
+            transparent 1px
+          );
+        background-size:
+          24px 24px,
+          40px 40px,
+          40px 40px;
+        padding: 4.5rem 0 7rem;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 90px));
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 3rem;
+        align-items: center;
+      }
+
+      /* the signature line, on its own yellow ticket */
+      .code-line {
+        display: block;
+        width: fit-content;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: 0.95rem;
+        color: var(--ink);
+        background: var(--yellow);
+        border: 2px solid var(--ink);
+        box-shadow: 5px 5px 0 var(--ink);
+        padding: 0.5rem 0.9rem;
+        min-height: 2.7rem;
+        min-width: 17.6rem;
+        margin-bottom: 1.9rem;
+      }
+      .code-line .fn {
+        color: var(--red);
+      }
+      .code-line .punct {
+        color: var(--red);
+      }
+      .code-line .str {
+        color: var(--ink);
+      }
+      .caret {
+        display: inline-block;
+        width: 8px;
+        background: var(--red);
+        margin-left: 2px;
+        animation: blink 1.1s steps(1) infinite;
+      }
+      @keyframes blink {
+        0%,
+        49% {
+          opacity: 1;
+        }
+        50%,
+        100% {
+          opacity: 0;
+        }
+      }
+
+      h1 {
+        font-family: var(--font-heading);
+        font-weight: normal;
+        text-transform: uppercase;
+        font-size: clamp(3rem, 8.5vw, 6.2rem);
+        line-height: 0.92;
+        letter-spacing: 0.01em;
+        margin: 1rem 0 1.25rem;
+        color: var(--paper);
+      }
+      h1 span {
+        color: var(--yellow);
+        display: block;
+      }
+      .lede {
+        font-size: 0.95rem;
+        color: var(--on-blue-soft);
+        max-width: 44ch;
+        margin-bottom: 2rem;
+      }
+      .lede strong {
+        color: var(--paper);
+      }
+      .hero-cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      /* --- WINDOW FRAME (shared with the decks, now inked) --- */
+      .window-frame {
+        border: 3px solid var(--ink);
+        background-color: var(--paper);
+        box-shadow: 8px 8px 0 var(--ink);
+        transition: box-shadow 0.2s ease;
+      }
+      .window-frame:hover {
+        box-shadow: 11px 11px 0 var(--ink);
+      }
+      .window-header {
+        background: var(--blue);
+        padding: 0.6rem 1rem;
+        border-bottom: 3px solid var(--ink);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.7rem;
+        color: var(--paper);
+        gap: 1rem;
+      }
+      .window-header .dots {
+        display: flex;
+        gap: 4px;
+      }
+      .window-header .dots i {
+        width: 8px;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.42);
+        display: block;
+      }
+      .window-header .dots i:first-child {
+        background: var(--yellow);
+      }
+
+      .board {
+        position: relative;
+        overflow: hidden;
+      }
+      .board img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      /* scan sweep on hover */
+      .board::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          105deg,
+          transparent 40%,
+          rgba(255, 255, 255, 0.3) 50%,
+          transparent 60%
+        );
+        transform: translateX(-120%);
+        transition: transform 0.7s ease;
+        pointer-events: none;
+      }
+      .board:hover::after {
+        transform: translateX(120%);
+      }
+
+      /* --- AT A GLANCE: cream boxes with hard black shadows --- */
+      .glance {
+        padding: 3rem 0 4.5rem;
+      }
+      .glance-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+      }
+      .glance-cell {
+        background: var(--cream);
+        border: 2px solid var(--ink);
+        box-shadow: 4px 4px 0 var(--ink);
+        padding: 1rem 1.15rem;
+      }
+      .glance-cell dt {
+        font-size: 0.62rem;
+        letter-spacing: 0.14em;
+        color: var(--blue);
+        margin-bottom: 0.4rem;
+        font-weight: 600;
+      }
+      .glance-cell dd {
+        font-size: 0.85rem;
+        color: var(--ink);
+        line-height: 1.45;
+      }
+      .glance-cell dd small {
+        color: var(--ink-soft);
+        font-size: 0.74rem;
+        display: block;
+      }
+
+      /* --- SECTION HEADS --- */
+      .section-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 2rem;
+        margin-bottom: 2.4rem;
+        border-bottom: 3px solid var(--ink);
+        padding-bottom: 0.9rem;
+      }
+      .section-head h2 {
+        font-family: var(--font-heading);
+        font-weight: normal;
+        text-transform: uppercase;
+        font-size: clamp(1.7rem, 3.2vw, 2.6rem);
+        line-height: 1;
+        color: var(--ink);
+      }
+      .section-head .path {
+        font-size: 0.72rem;
+        color: var(--ink-soft);
+        white-space: nowrap;
+      }
+
+      /* --- THE THREE DAYS: white cards, inked edges --- */
+      .track {
+        padding-bottom: 5rem;
+      }
+      .track-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+      }
+
+      .day-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        border: 2px solid var(--ink);
+        background: var(--paper);
+        box-shadow: 6px 6px 0 var(--ink);
+        padding: 1.75rem 1.5rem 1.5rem;
+        overflow: hidden;
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+      .day-card .ghost {
+        position: absolute;
+        top: -1.9rem;
+        right: 0.4rem;
+        font-family: var(--font-heading);
+        font-size: 7rem;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.05);
+        pointer-events: none;
+        user-select: none;
+      }
+      .day-card .card-top {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+        position: relative;
+      }
+      .day-card h3 {
+        font-family: var(--font-heading);
+        font-weight: normal;
+        text-transform: uppercase;
+        font-size: 2.1rem;
+        line-height: 0.95;
+        position: relative;
+        color: var(--ink);
+      }
+      .day-card h3 em {
+        display: block;
+        font-style: normal;
+        color: var(--blue);
+      }
+      .day-card .kicker {
+        font-size: 0.75rem;
+        color: var(--ink-soft);
+        margin: 0.5rem 0 1rem;
+        position: relative;
+      }
+      .day-card p {
+        font-size: 0.85rem;
+        color: var(--ink-soft);
+        position: relative;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin: 1.25rem 0 1.5rem;
+        position: relative;
+      }
+      .chips span {
+        font-size: 0.68rem;
+        color: var(--ink-soft);
+        border: 1px solid var(--ink-faint);
+        padding: 2px 7px;
+        background: rgba(0, 0, 0, 0.02);
+      }
+      .day-card .card-foot {
+        margin-top: auto;
+        position: relative;
+      }
+
+      a.day-card:hover {
+        transform: translate(-4px, -4px);
+        box-shadow: 11px 11px 0 var(--ink);
+      }
+      a.day-card:hover .ghost {
+        color: rgba(0, 0, 0, 0.075);
+      }
+      a.day-card:hover h3 em {
+        color: var(--red);
+      }
+      a.day-card:hover .go {
+        gap: 1rem;
+        color: var(--red);
+      }
+      .go {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-family: var(--font-heading);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--blue);
+        font-size: 0.95rem;
+        transition:
+          gap 0.18s ease,
+          color 0.18s ease;
+      }
+
+      /* day 3 - not built yet */
+      .day-card.locked {
+        border-style: dashed;
+        background: rgba(255, 255, 255, 0.55);
+        box-shadow: none;
+      }
+      .day-card.locked h3 {
+        color: var(--ink-faint);
+      }
+      .day-card.locked h3 em {
+        color: var(--ink-faint);
+      }
+      .day-card.locked p,
+      .day-card.locked .kicker {
+        color: var(--ink-faint);
+      }
+      .day-card.locked .ghost {
+        color: rgba(0, 0, 0, 0.035);
+      }
+      .day-card .soon {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-family: var(--font-heading);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+        color: var(--ink-faint);
+      }
+
+      /* connector between the days (desktop only): a dashed arc with a node in each gap */
+      .track-grid {
+        position: relative;
+      }
+      @media (min-width: 981px) {
+        .track-grid::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: -1.05rem;
+          height: 9px;
+          background-image:
+            radial-gradient(
+              circle at 33% 50%,
+              var(--red) 3.5px,
+              transparent 4px
+            ),
+            radial-gradient(
+              circle at 67% 50%,
+              var(--red) 3.5px,
+              transparent 4px
+            ),
+            repeating-linear-gradient(
+              90deg,
+              var(--ink) 0 8px,
+              transparent 8px 18px
+            );
+          background-size:
+            100% 100%,
+            100% 100%,
+            100% 2px;
+          background-position:
+            0 0,
+            0 0,
+            0 50%;
+          background-repeat: no-repeat;
+          pointer-events: none;
+        }
+      }
+
+      /* --- CLOSER --- */
+      .closer {
+        padding-bottom: 5rem;
+      }
+      .closer-inner {
+        padding: 2.75rem 2.5rem;
+        background: var(--cream);
+        border: 2px solid var(--ink);
+        box-shadow: 6px 6px 0 var(--ink);
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 2rem;
+        align-items: center;
+      }
+      .closer .quote {
+        font-family: var(--font-heading);
+        font-style: italic;
+        text-transform: uppercase;
+        font-size: clamp(1.5rem, 3.4vw, 2.6rem);
+        line-height: 1.1;
+        color: var(--ink);
+      }
+      .closer .quote b {
+        color: var(--ink);
+        font-weight: normal;
+      }
+      .closer .quote .stop {
+        color: var(--red);
+      }
+      .closer .meta {
+        font-size: 0.82rem;
+        color: var(--ink-soft);
+      }
+      .closer .meta strong {
+        color: var(--ink);
+        display: block;
+        font-weight: 600;
+      }
+
+      /* --- FOOTER: the black keyline that closes the poster --- */
+      footer {
+        background: var(--ink);
+      }
+      .foot-inner {
+        padding: 1.35rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+        justify-content: space-between;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .foot-inner b {
+        color: var(--yellow);
+        font-weight: 600;
+      }
+
+      /* --- LOAD REVEAL --- */
+      .reveal {
+        opacity: 0;
+        transform: translateY(14px);
+        animation: rise 0.55s ease forwards;
+      }
+      @keyframes rise {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .d-1 {
+        animation-delay: 0.05s;
+      }
+      .d-2 {
+        animation-delay: 0.15s;
+      }
+      .d-3 {
+        animation-delay: 0.25s;
+      }
+      .d-4 {
+        animation-delay: 0.35s;
+      }
+      .d-5 {
+        animation-delay: 0.45s;
+      }
+      .d-6 {
+        animation-delay: 0.55s;
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--yellow);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--ink);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--blue);
+      }
+
+      /* --- RESPONSIVE --- */
+      @media (max-width: 980px) {
+        .hero {
+          padding-bottom: 6.5rem;
+          clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 60px));
+        }
+        .hero-grid {
+          grid-template-columns: 1fr;
+          gap: 2.5rem;
+        }
+        .glance-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .track-grid {
+          grid-template-columns: 1fr;
+        }
+        .closer-inner {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 640px) {
+        .wrap {
+          padding: 0 1.25rem;
+        }
+        .hero {
+          padding-top: 3rem;
+        }
+        .code-line {
+          font-size: 0.82rem;
+          min-width: 15.2rem;
+        }
+        .glance-grid {
+          grid-template-columns: 1fr;
+        }
+        .topbar-inner {
+          padding: 0.7rem 1.25rem;
+        }
+        .topbar-meta .hide-sm {
+          display: none;
+        }
+        .section-head {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+        .closer-inner {
+          padding: 1.75rem 1.5rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .reveal {
+          opacity: 1;
+          transform: none;
+          animation: none;
+        }
+        .caret {
+          animation: none;
+        }
+        .board::after {
+          display: none;
+        }
+        .day-card,
+        .go,
+        .window-frame,
+        .btn-neon,
+        .btn-outline {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- ================= TOP BAR ================= -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="wordmark">
+          <strong>TinkerHub</strong>
+          <span>CE Karunagappally</span>
+        </div>
+        <div class="topbar-meta">
+          <span class="tag-badge">PYTHON STUDY JAM</span>
+          <span class="hide-sm">3 DAYS &middot; OCT 16 &ndash; 22</span>
+          <span class="live"
+            ><i class="fa-solid fa-circle" style="font-size: 6px"></i> DECKS
+            01&ndash;02 LIVE</span
+          >
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- ================= HERO ================= -->
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div>
+            <div class="code-line reveal d-1" id="hero-code">
+              <span class="fn">print</span><span class="punct">(</span
+              ><span class="str">"Syntax to Solutions"</span
+              ><span class="punct">)</span><span class="caret">&nbsp;</span>
+            </div>
+
+            <span class="tag-badge solid reveal d-2">PYTHON STUDY JAM</span>
+            <h1 class="reveal d-3">Syntax<br />to <span>Solutions</span></h1>
+
+            <p class="lede reveal d-4">
+              Three days to go from Python fundamentals to problem-solving and
+              collaborative building. Learn by experimenting, break down
+              problems, explore <strong>AI as a learning tool</strong>, and
+              build something together. No prior experience required.
+            </p>
+
+            <div class="hero-cta reveal d-5">
+              <a
+                class="btn-neon"
+                href="day1.html"
+                target="_blank"
+                rel="noopener"
+              >
+                <span>Start Day 01</span>
+                <i
+                  class="fa-solid fa-arrow-right"
+                  style="font-size: 0.85rem"
+                ></i>
+              </a>
+              <a
+                class="btn-outline"
+                href="day2.html"
+                target="_blank"
+                rel="noopener"
+              >
+                <i class="fa-solid fa-code"></i>
+                <span>Jump to Day 02</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="window-frame board reveal d-6">
+            <div class="window-header">
+              <span class="dots"><i></i><i></i><i></i></span>
+              <span>// SYNTAX TO SOLUTIONS</span>
+              <span>3-DAY PYTHON STUDY JAM</span>
+            </div>
+            <img
+              src="poster.png"
+              alt="Syntax to Solutions - a three-day Python study jam: Day 1 online fundamentals, Day 2 online logic and problem solving, Day 3 offline build and collaborate."
+              width="1122"
+              height="1403"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= AT A GLANCE ================= -->
+      <section class="glance">
+        <div class="wrap">
+          <dl class="glance-grid reveal d-4">
+            <div class="glance-cell">
+              <dt>DATES</dt>
+              <dd>October 16 &middot; 17 &middot; 22</dd>
+            </div>
+            <div class="glance-cell">
+              <dt>ONLINE</dt>
+              <dd>
+                Oct 16 &amp; 17<small>8:00 PM &middot; Google Meet</small>
+              </dd>
+            </div>
+            <div class="glance-cell">
+              <dt>OFFLINE</dt>
+              <dd>Oct 22<small>Build &amp; collaborate in person</small></dd>
+            </div>
+            <div class="glance-cell">
+              <dt>MENTOR</dt>
+              <dd>Arjun S Nair<small>Learning Coordinator</small></dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- ================= THE THREE DAYS ================= -->
+      <section class="track">
+        <div class="wrap">
+          <div class="section-head">
+            <h2>Three days, one arc</h2>
+            <span class="path">// fundamentals &rarr; logic &rarr; build</span>
+          </div>
+
+          <div class="track-grid">
+            <!-- DAY 1 -->
+            <a
+              class="day-card reveal d-2"
+              href="day1.html"
+              target="_blank"
+              rel="noopener"
+            >
+              <span class="ghost" aria-hidden="true">01</span>
+              <div class="card-top">
+                <span class="tag-badge">DAY 01 / 03</span>
+                <span class="tag-badge dim">ONLINE</span>
+              </div>
+              <h3>Snake<em>Bytes</em></h3>
+              <div class="kicker">The Fundamentals &middot; Oct 16, 8 PM</div>
+              <p>
+                Get your first taste of Python! Explore syntax, variables, data
+                types, input/output, conditionals, and loops through hands-on
+                coding activities. Start small, experiment freely, and write
+                your first programs.
+              </p>
+              <div class="chips">
+                <span>syntax</span><span>variables</span><span>data types</span>
+                <span>strings</span><span>I/O</span><span>if / else</span
+                ><span>loops</span>
+              </div>
+              <div class="card-foot">
+                <span class="go"
+                  >Open the deck
+                  <i
+                    class="fa-solid fa-arrow-right"
+                    style="font-size: 0.8rem"
+                  ></i
+                ></span>
+              </div>
+            </a>
+
+            <!-- DAY 2 -->
+            <a
+              class="day-card reveal d-3"
+              href="day2.html"
+              target="_blank"
+              rel="noopener"
+            >
+              <span class="ghost" aria-hidden="true">02</span>
+              <div class="card-top">
+                <span class="tag-badge">DAY 02 / 03</span>
+                <span class="tag-badge dim">ONLINE</span>
+              </div>
+              <h3>Logic<em>Unlocked</em></h3>
+              <div class="kicker">
+                The Problem-Solving Arc &middot; Oct 17, 8 PM
+              </div>
+              <p>
+                Go beyond syntax and learn to think like a programmer. Break
+                problems into smaller steps, build algorithms, debug code, and
+                tackle challenges using loops, functions, and logical reasoning.
+                Use AI as a learning companion, not a shortcut.
+              </p>
+              <div class="chips">
+                <span>control flow</span><span>range()</span
+                ><span>functions</span> <span>scope</span><span>recursion</span
+                ><span>algorithms</span>
+              </div>
+              <div class="card-foot">
+                <span class="go"
+                  >Open the deck
+                  <i
+                    class="fa-solid fa-arrow-right"
+                    style="font-size: 0.8rem"
+                  ></i
+                ></span>
+              </div>
+            </a>
+
+            <!-- DAY 3 -->
+            <article
+              class="day-card locked reveal d-4"
+              aria-label="Day 3, coming soon"
+            >
+              <span class="ghost" aria-hidden="true">03</span>
+              <div class="card-top">
+                <span class="tag-badge dim">DAY 03 / 03</span>
+                <span class="tag-badge dim">OFFLINE</span>
+              </div>
+              <h3>Function<em>Junction</em></h3>
+              <div class="kicker">
+                Build &amp; Collaborate &middot; Coming soon
+              </div>
+              <p>
+                Put your skills to work offline! Create small functions,
+                exchange code with other teams, figure out how unfamiliar code
+                works, and combine your pieces into a working project. Learn how
+                collaboration turns individual ideas into something bigger.
+              </p>
+              <div class="chips">
+                <span>functions</span><span>code swap</span
+                ><span>reading code</span><span>team build</span>
+              </div>
+              <div class="card-foot">
+                <span class="soon"
+                  ><i class="fa-solid fa-lock" style="font-size: 0.8rem"></i>
+                  Coming soon</span
+                >
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CLOSER ================= -->
+      <section class="closer">
+        <div class="wrap">
+          <div class="closer-inner">
+            <div class="quote reveal d-2">
+              Python is easy.<br /><b>Until it isn't</b
+              ><span class="stop">.</span>
+            </div>
+            <div class="meta reveal d-3">
+              <strong>Mentor &mdash; Arjun S Nair</strong>
+              Learning Coordinator, CE Karunagappally<br />
+              <span style="display: inline-block; margin-top: 0.6rem">
+                Bring your laptop, a notebook, and one idea you want to build.
+              </span>
+              <div style="margin-top: 1.5rem">
+                <a
+                  class="btn-neon"
+                  href="https://forms.gle/W92BEYkN2sBf7R88A"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <i
+                    class="fa-regular fa-comment-dots"
+                    style="font-size: 0.9rem"
+                  ></i>
+                  <span>Share your feedback or Share your project</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="foot-inner">
+        <span
+          ><b>TinkerHub CE Karunagappally</b> &middot; Python Study Jam</span
+        >
+        <span
+          >Day 01 Snake Bytes &middot; Day 02 Logic Unlocked &middot; Day 03
+          Function Junction</span
+        >
+      </div>
+    </footer>
+
+    <script>
+      // ---- scroll progress (same idea as the decks' progress bar) ----
+      (function () {
+        var bar = document.getElementById("progress-bar");
+        function paint() {
+          var max = document.documentElement.scrollHeight - window.innerHeight;
+          var pct = max > 0 ? (window.scrollY / max) * 100 : 100;
+          bar.style.width = pct.toFixed(1) + "%";
+        }
+        window.addEventListener("scroll", paint, { passive: true });
+        window.addEventListener("resize", paint);
+        paint();
+      })();
+
+      // ---- once a block has risen, drop the class so :hover transforms can win ----
+      // (a filling animation keeps its own transform and would otherwise swallow them)
+      document.querySelectorAll(".reveal").forEach(function (el) {
+        el.addEventListener(
+          "animationend",
+          function () {
+            el.classList.remove("reveal");
+          },
+          { once: true },
+        );
+      });
+
+      // ---- type the signature line, then leave it be ----
+      (function () {
+        var line = document.getElementById("hero-code");
+        if (!line) return;
+        var reduce = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        if (reduce) return; // the markup already shows the finished line
+
+        var plain = 'print("Syntax to Solutions")';
+        var marked =
+          '<span class="fn">print</span><span class="punct">(</span>' +
+          '<span class="str">"Syntax to Solutions"</span><span class="punct">)</span>' +
+          '<span class="caret">&nbsp;</span>';
+
+        line.textContent = "";
+        var i = 0;
+        (function tick() {
+          if (i <= plain.length) {
+            line.textContent = plain.slice(0, i++);
+            setTimeout(tick, i < 8 ? 42 : 58);
+          } else {
+            line.innerHTML = marked;
+          }
+        })();
+      })();
+    </script>
+  </body>
+</html>

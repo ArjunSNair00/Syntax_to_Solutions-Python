@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNAKE BYTES | Python Study Jam - Day 1</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Fira+Code:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- DESIGN TOKENS --- */
+        :root {
+            --black: #0A0A0A;
+            --dark: #111111;
+            --card: #161616;
+            --neon: #9DFF20;
+            --neon-hover: #82E00B;
+            --neon-dark: #1A3300;
+            --gray-text: #A0A0A0;
+            --border: #2A2A2A;
+            --window-border: #444444;
+            --white: #EAEAEA;
+            --error: #EF4444;
+            --success: #10B981;
+            
+            --font-heading: 'Anton', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            border-radius: 0; /* Hard edges */
+        }
+
+        body {
+            background-color: var(--black);
+            /* Signature Background Grid */
+            background-image: 
+                radial-gradient(rgba(157,255,32,0.08) 1px, transparent 0),
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 24px 24px, 40px 40px, 40px 40px;
+            color: var(--white);
+            font-family: var(--font-mono);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        ::selection { background: var(--neon); color: var(--black); }
+
+        /* --- LAYOUT & NAVIGATION --- */
+        .progress-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--border);
+            z-index: 100;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--neon);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        #app {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 3rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(48px);
+            transition: opacity 0.32s ease, transform 0.32s ease, visibility 0.32s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: var(--dark);
+            border-top: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .dot.active {
+            width: 20px;
+            background: var(--neon);
+        }
+
+        /* --- COMPONENTS --- */
+        .window-frame {
+            border: 1px solid var(--window-border);
+            background-color: var(--dark);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.8), 0 0 15px rgba(157,255,32,0.03);
+            transition: border-color 0.2s ease;
+            margin-bottom: 1rem;
+        }
+        .window-frame:hover { border-color: rgba(157,255,32,0.4); }
+
+        .window-header {
+            background: var(--card);
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--gray-text);
+        }
+
+        .neon-code-box {
+            border: 1px solid var(--neon);
+            background-color: #050505;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid rgba(157,255,32,0.3);
+            font-size: 0.75rem;
+        }
+        .code-content {
+            padding: 1rem;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        /* Syntax Highlighting */
+        .kw { color: var(--neon); }
+        .str { color: #6EE7B7; } /* emerald-300 */
+        .num { color: #FCD34D; } /* amber-300 */
+        .var { color: #C084FC; } /* purple-400 */
+        .fn { color: #60A5FA; } /* blue-400 */
+        .com { color: #6B7280; } /* gray-500 */
+        .err { color: var(--error); }
+
+        .btn-neon {
+            background-color: var(--neon);
+            color: var(--black);
+            font-family: var(--font-heading);
+            letter-spacing: 1px;
+            padding: 0.5rem 1.5rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #000;
+            transition: all 0.15s ease-in-out;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-neon:hover { background: var(--neon-hover); transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #000; }
+        .btn-neon:active { transform: translate(0,0); box-shadow: 2px 2px 0 #000; }
+
+        .btn-outline {
+            border: 1px solid var(--neon);
+            color: var(--neon);
+            background: transparent;
+            padding: 0.5rem 1.5rem;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .btn-outline:hover { background: rgba(157,255,32,0.1); box-shadow: 0 0 10px rgba(157,255,32,0.2); }
+
+        .tag-badge {
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            padding: 2px 8px;
+            border: 1px solid var(--neon);
+            color: var(--neon);
+            background: rgba(157,255,32,0.05);
+            white-space: nowrap;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            align-self: flex-start;
+        }
+
+        /* Typography */
+        h1, h2, h3 { font-family: var(--font-heading); font-weight: normal; line-height: 1.1; }
+        h1 { font-size: 4rem; text-transform: uppercase; margin-bottom: 1rem; }
+        h1 span { color: var(--neon); }
+        h2 { font-size: 2rem; text-transform: uppercase; color: var(--white); margin-bottom: 1rem; }
+        h3 { font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--white); }
+        p { font-size: 0.9rem; color: var(--gray-text); line-height: 1.6; margin-bottom: 1rem; }
+        ul { padding-left: 1.5rem; margin-bottom: 1rem; font-size: 0.9rem; line-height: 1.6; color: var(--gray-text); }
+        li { margin-bottom: 0.25rem; }
+        strong { color: var(--white); }
+
+        /* Layouts */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+        .flex-row { display: flex; gap: 1rem; align-items: center; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1rem; }
+        th, td { border: 1px solid var(--border); padding: 0.5rem; text-align: left; }
+        th { background: var(--card); color: var(--neon); font-weight: normal; }
+        td { color: var(--gray-text); }
+
+        /* --- ANIMATIONS & INTERACTIVITY --- */
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .flow-step {
+            border: 1px solid var(--border);
+            padding: 0.75rem;
+            text-align: center;
+            background: var(--card);
+            font-size: 0.75rem;
+            position: relative;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: slideUp 0.4s ease forwards;
+        }
+        .flow-step:hover { border-color: var(--neon); box-shadow: 0 0 10px rgba(157,255,32,0.2); }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+
+        .output-box {
+            display: none;
+            background: #050505;
+            border-left: 2px solid var(--neon);
+            padding: 0.5rem 1rem;
+            margin: 0 1rem 1rem 1rem;
+            font-size: 0.8rem;
+            color: #6EE7B7;
+            animation: fadeIn 0.3s ease;
+        }
+        .output-box.error-box {
+            border-left-color: var(--error);
+            color: #FCA5A5;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Quizzes */
+        .quiz-option {
+            border: 1px solid var(--border);
+            background: var(--black);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .quiz-option:hover { border-color: var(--neon); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16,185,129,0.1); color: #6EE7B7; pointer-events: none; }
+        .quiz-option.incorrect { border-color: var(--error); background: rgba(239,68,68,0.1); color: #FCA5A5; pointer-events: none; }
+        .quiz-option.disabled { opacity: 0.5; pointer-events: none; }
+        
+        .feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            font-size: 0.85rem;
+            display: none;
+            border: 1px solid;
+        }
+        .feedback.success { border-color: var(--success); background: rgba(16,185,129,0.1); color: #6EE7B7; }
+        .feedback.error { border-color: var(--error); background: rgba(239,68,68,0.1); color: #FCA5A5; }
+
+        /* --- SLIDE CHROME: kicker, corner badge, footer rule (from the reference deck) --- */
+        .slide-head {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 2rem; margin-bottom: 2.1rem;
+        }
+        .slide-head h2 { font-size: 2.6rem; line-height: 1.05; margin-bottom: 0; }
+        .kicker {
+            font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase;
+            color: var(--neon); margin-bottom: 0.45rem;
+        }
+        h2 .hl { color: var(--neon); }
+        .badge {
+            flex: none; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+            padding: 4px 10px; border: 1px solid var(--neon); color: var(--neon);
+            background: rgba(157,255,32,0.06); white-space: nowrap;
+        }
+        .slide-foot {
+            position: absolute; left: 3rem; right: 3rem; bottom: 1.3rem;
+            display: flex; justify-content: space-between; gap: 1rem;
+            font-size: 0.66rem; letter-spacing: 0.1em; color: var(--gray-text);
+            border-top: 1px solid var(--border); padding-top: 0.55rem;
+        }
+
+        /* --- TITLE SLIDE --- */
+        .title-split {
+            position: relative; display: grid; grid-template-columns: 1.05fr 0.95fr;
+            gap: 3.5rem; align-items: center;
+        }
+        .title-split::after {
+            content: ''; position: absolute; left: 52.5%; top: -8%; height: 116%;
+            width: 1px; background: var(--border);
+        }
+        .title-copy { padding-right: 1rem; }
+        .title-lead { font-size: 1.15rem; color: var(--white); max-width: 32ch; margin: 0 0 2rem; }
+        .block-cursor {
+            display: inline-block; width: 0.6em; height: 1em; background: var(--neon);
+            margin-left: 0.4em; vertical-align: -0.1em; animation: pulse 1.6s infinite;
+        }
+        .title-rule { height: 1px; background: var(--border); margin-bottom: 1.5rem; }
+        .title-meta { display: flex; flex-direction: column; gap: 0.35rem; }
+        .meta-neon { color: var(--neon); font-size: 0.95rem; }
+        .meta-dim { color: var(--gray-text); font-size: 0.9rem; }
+
+        /* Pixel snake, built from a row map in the script */
+        .snake-window { margin: 0; }
+        .snake-stage {
+            display: flex; align-items: center; justify-content: center;
+            padding: 2.25rem 2rem; min-height: 320px;
+        }
+        .snake-grid { display: grid; grid-template-columns: repeat(11, 26px); grid-auto-rows: 26px; gap: 6px; }
+        .snake-cell { width: 26px; height: 26px; border-radius: 6px; position: relative; }
+        .snake-cell.on { background: var(--neon); }
+        .snake-cell.is-head::before {
+            content: ''; position: absolute; right: 4px; top: 7px;
+            width: 5px; height: 5px; background: var(--black); border-radius: 1px;
+        }
+        .snake-cell.is-head::after {
+            content: ''; position: absolute; right: -16px; top: 50%; margin-top: -4px;
+            width: 0; height: 0;
+            border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+            border-right: 6px solid var(--neon);
+        }
+        .win-dots { display: flex; gap: 6px; }
+        .win-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--border); display: block; }
+        .win-dots i:first-child { background: var(--neon); }
+
+        /* --- PIPELINE STRIP --- */
+        .pipeline-strip {
+            display: flex; align-items: center; gap: 1rem;
+            border: 1px solid var(--window-border); background: var(--dark);
+            padding: 1.6rem 1.5rem; margin-bottom: 2rem;
+        }
+        .pipe-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; }
+        .pipe-step i { font-size: 1.8rem; color: var(--neon); }
+        .pipe-step span { font-size: 0.95rem; color: var(--white); }
+        .pipe-arrow { color: var(--gray-text); font-size: 1rem; }
+
+        /* --- PANEL CARDS --- */
+        .info-card { border: 1px solid var(--window-border); background: var(--dark); padding: 1.5rem 1.5rem; }
+        .info-card h3 {
+            display: flex; align-items: center; gap: 0.6rem;
+            font-family: var(--font-mono); font-weight: 600; font-size: 1.05rem;
+            color: var(--white); margin-bottom: 0.55rem;
+        }
+        .info-card h3 i { color: var(--neon); }
+        .info-card p { font-size: 0.92rem; margin: 0; }
+
+        .code-panel { border: 1px solid var(--window-border); background: var(--dark); padding: 1.1rem 1.25rem; }
+        .code-panel.good { border-color: rgba(157,255,32,0.55); }
+        .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; }
+        .panel-title { font-size: 0.95rem; color: var(--white); }
+        .panel-title.neon { color: var(--neon); }
+        .chip {
+            font-size: 0.66rem; letter-spacing: 0.04em; padding: 3px 8px;
+            border: 1px solid var(--neon); color: var(--neon);
+            background: rgba(157,255,32,0.06); white-space: nowrap;
+        }
+        .chip.dim { border-color: var(--window-border); color: var(--gray-text); background: rgba(255,255,255,0.03); }
+        .gutter {
+            border-left: 2px solid var(--neon); background: #050505;
+            padding: 0.9rem 1rem; font-size: 0.9rem; line-height: 1.65;
+        }
+        .gutter.dim { border-left-color: var(--window-border); }
+        .op-out {
+            margin-top: 1rem; padding: 0.6rem 0.9rem; font-size: 0.82rem;
+            border: 1px dashed var(--neon); background: rgba(157,255,32,0.05); color: var(--neon);
+        }
+        .op-out.dim { border-color: var(--window-border); background: transparent; color: var(--gray-text); }
+        .tick-list { list-style: none; padding: 0; margin: 1rem 0 0; font-size: 0.9rem; line-height: 1.75; }
+        .tick-list.bad { color: var(--error); }
+
+        /* --- TOKEN CARDS (3 up, then 2 up) --- */
+        .tok-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.1rem; }
+        .tok-grid > .info-card:nth-child(-n+3) { grid-column: span 2; }
+        .tok-grid > .info-card:nth-child(n+4) { grid-column: span 3; }
+        .tok-label { font-size: 0.66rem; letter-spacing: 0.12em; color: var(--neon); margin-bottom: 0.4rem; }
+        .tok-code {
+            margin-top: 1.15rem; border-left: 2px solid var(--neon); background: #050505;
+            padding: 0.6rem 0.9rem; font-size: 0.8rem;
+        }
+
+        /* --- BORDERED FLOW BOX --- */
+        .flow-box {
+            border: 1px solid var(--window-border); background: var(--dark);
+            padding: 0.9rem 1.25rem; margin-bottom: 1.5rem;
+        }
+        .flow-chain { font-size: 0.85rem; color: var(--white); margin-bottom: 0.4rem; }
+
+        /* --- FIVE STEPS + CPYTHON BAR --- */
+        .steps-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.9rem; margin-bottom: 1.75rem; }
+        .step-card { border: 1px solid var(--window-border); background: var(--dark); padding: 1.5rem 0.7rem; text-align: center; }
+        .step-card.active { border-color: var(--neon); }
+        .step-label { font-size: 0.66rem; letter-spacing: 0.12em; color: var(--neon); margin-bottom: 0.5rem; }
+        .step-name { font-size: 1rem; font-weight: 600; color: var(--white); margin-bottom: 0.3rem; }
+        .step-card.active .step-name { color: var(--neon); }
+        .step-sub { font-size: 0.78rem; color: var(--gray-text); }
+        .cpython-bar {
+            display: flex; align-items: center; gap: 1.25rem;
+            border: 1px solid var(--window-border); background: var(--dark); padding: 1.4rem 1.5rem;
+        }
+        .cpython-bar i { font-size: 1.9rem; color: var(--neon); }
+        .cpython-bar strong { display: block; font-size: 0.95rem; font-weight: 600; color: var(--white); margin-bottom: 0.25rem; }
+        .cpython-bar span { font-size: 0.9rem; color: var(--gray-text); }
+
+        /* --- FLOW LINE, NOTES, COMPARISON --- */
+        .flow-line {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;
+            border: 1px solid var(--window-border); background: var(--dark);
+            padding: 1.1rem 1.25rem; font-size: 0.95rem; color: var(--white);
+            letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 1.5rem;
+        }
+        .flow-line i { color: var(--neon); font-size: 0.8rem; }
+        .col-stack { display: flex; flex-direction: column; gap: 1.25rem; }
+        .note-dashed {
+            border-top: 1px dashed var(--border); padding-top: 0.9rem;
+            font-size: 0.9rem; color: var(--gray-text); line-height: 1.65;
+        }
+        .lead { font-size: 0.95rem; color: var(--white); margin-bottom: 1.6rem; }
+        .quote-note { margin: 1rem 0 0; padding-top: 1rem; border-top: 1px dashed var(--border); color: var(--gray-text); font-size: 0.9rem; }
+        .flow-note { font-size: 0.86rem; color: var(--gray-text); }
+        .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin: 1.5rem 0; }
+        .cmp-col { border: 1px solid var(--window-border); background: var(--dark); }
+        .cmp-head {
+            padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--window-border);
+            font-size: 0.85rem; color: var(--white); font-weight: 600;
+        }
+        .cmp-head.neon { color: var(--neon); }
+        .cmp-row {
+            padding: 0.7rem 1.1rem; font-size: 0.88rem; color: var(--gray-text);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .cmp-row:last-child { border-bottom: none; }
+
+        /* --- QUICK CHECK (predict before you reveal) --- */
+        .qc-panel { border: 1px solid var(--window-border); background: var(--dark); padding: 1.8rem 1.8rem; margin-bottom: 1.5rem; }
+        .qc-count { font-size: 0.72rem; letter-spacing: 0.14em; color: var(--neon); margin-bottom: 0.9rem; }
+        .qc-q { font-size: 1.15rem; color: var(--white); margin-bottom: 1rem; line-height: 1.5; }
+        .qc-opts { list-style: none; padding: 0; margin: 0; font-size: 0.98rem; color: var(--gray-text); }
+        .qc-opts li { padding: 0.25rem 0; }
+        .qc-opts li::before { content: '\2022'; color: var(--neon); margin-right: 0.6rem; }
+        .qc-answer {
+            display: none; margin-top: 1rem; padding-top: 1rem;
+            border-top: 1px dashed var(--border);
+            font-size: 0.9rem; color: var(--white); line-height: 1.6;
+        }
+        .qc-answer.shown { display: block; animation: fadeIn 0.25s ease; }
+        .qc-letter { color: var(--neon); font-weight: 600; margin-right: 0.35rem; }
+        .qc-actions { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; }
+        .qc-actions > :first-child { justify-self: start; }
+        .qc-actions > :last-child { justify-self: end; }
+        .qc-actions button:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+        .qc-actions .btn-neon { text-transform: none; letter-spacing: 0.02em; }
+
+        /* Utility */
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .text-center { text-align: center; }
+        .text-sm { font-size: 0.8rem; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--black); }
+        ::-webkit-scrollbar-thumb { background: var(--border); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon); }
+
+        @media (max-width: 768px) {
+            .slide { padding: 1.5rem; }
+            h1 { font-size: 2.5rem; }
+            h2 { font-size: 1.5rem; }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+            .slide-foot { left: 1.5rem; right: 1.5rem; bottom: 1rem; }
+            .slide-head { flex-direction: column; gap: 0.75rem; }
+            .title-split { grid-template-columns: 1fr; gap: 2rem; }
+            .title-split::after { display: none; }
+            .steps-5 { grid-template-columns: repeat(2, 1fr); }
+            .pipeline-strip { flex-direction: column; align-items: stretch; }
+            .pipe-arrow { text-align: center; transform: rotate(90deg); }
+            .cmp { grid-template-columns: 1fr; }
+            .qc-panel { padding: 1.1rem 1.2rem; }
+            .qc-actions { grid-template-columns: 1fr; }
+            .qc-actions > :first-child, .qc-actions > :last-child { justify-self: stretch; }
+            .qc-actions button { justify-content: center; }
+            .snake-stage { min-height: 0; padding: 1.75rem 1rem; }
+            .snake-grid { grid-template-columns: repeat(11, 16px); grid-auto-rows: 16px; gap: 4px; }
+            .snake-cell { width: 16px; height: 16px; }
+            .tok-grid { grid-template-columns: 1fr; }
+            .tok-grid > .info-card:nth-child(n) { grid-column: auto; }
+            .flow-box { padding: 0.75rem 0.9rem; }
+            .cpython-bar { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div id="app">
+        
+        <!-- SLIDE 1: TITLE -->
+        <div class="slide active" id="slide-0">
+            <div class="title-split">
+                <div class="title-copy">
+                    <div class="kicker">Python Study Jam</div>
+                    <h1>SNAKE<br><span>BYTES</span></h1>
+                    <p class="title-lead">From understanding code to writing your first program.<span class="block-cursor"></span></p>
+                    <div class="title-rule"></div>
+                    <div class="title-meta">
+                        <span class="meta-neon">Day 1: The Fundamentals</span>
+                        <span class="meta-dim">TinkerHub CE Karunagappally</span>
+                    </div>
+                </div>
+
+                <div class="window-frame snake-window">
+                    <div class="window-header">
+                        <span class="win-dots"><i></i><i></i><i></i></span>
+                    </div>
+                    <div class="snake-stage">
+                        <div class="snake-grid" id="snakeGrid" aria-hidden="true"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: PROGRAMMING VS CODING -->
+        <div class="slide" id="slide-1">
+            <div class="slide-head">
+                <div>
+                    <div class="kicker">Concept 01</div>
+                    <h2>Programming vs <span class="hl">Coding</span></h2>
+                </div>
+                <span class="badge">Pipeline</span>
+            </div>
+
+            <div class="pipeline-strip">
+                <div class="pipe-step">
+                    <i class="fa-regular fa-lightbulb"></i>
+                    <span>1. Human Idea</span>
+                </div>
+                <span class="pipe-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <div class="pipe-step">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <span>2. Algorithm</span>
+                </div>
+                <span class="pipe-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <div class="pipe-step">
+                    <i class="fa-solid fa-code"></i>
+                    <span>3. Python Code</span>
+                </div>
+                <span class="pipe-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <div class="pipe-step">
+                    <i class="fa-solid fa-terminal"></i>
+                    <span>4. Execution</span>
+                </div>
+            </div>
+
+            <div class="grid-2" style="align-items: stretch;">
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-diagram-project"></i> Programming</h3>
+                    <p>The entire problem-solving architecture. Designing algorithms, structuring logic, and planning solution flow.</p>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-keyboard"></i> Coding</h3>
+                    <p>The literal translation step. Writing instructions in specific programming language syntax for machine execution.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: HIGH-LEVEL VS LOW-LEVEL -->
+        <div class="slide" id="slide-2">
+            <div class="slide-head">
+                <div>
+                    <div class="kicker">Syntax Readability</div>
+                    <h2>High-Level vs <span class="hl">Low-Level</span></h2>
+                </div>
+                <span class="badge">Comparison</span>
+            </div>
+
+            <div class="grid-2" style="align-items: stretch;">
+                <div class="code-panel good">
+                    <div class="panel-head">
+                        <span class="panel-title neon">Python (High-Level)</span>
+                        <span class="chip">1 Line Focus</span>
+                    </div>
+                    <div class="gutter">
+                        <span class="var">a</span> = <span class="num">5</span><br>
+                        <span class="var">b</span> = <span class="num">3</span><br>
+                        <span class="fn">print</span>(<span class="var">a</span> + <span class="var">b</span>)
+                    </div>
+                    <div class="op-out">Output: 8</div>
+                    <ul class="tick-list">
+                        <li>&#10003; Human readable syntax</li>
+                        <li>&#10003; Automatic memory management</li>
+                        <li>&#10003; Zero boilerplate headers</li>
+                    </ul>
+                </div>
+
+                <div class="code-panel">
+                    <div class="panel-head">
+                        <span class="panel-title">C (Low-Level)</span>
+                        <span class="chip dim">Manual Mgmt</span>
+                    </div>
+                    <div class="gutter dim">
+                        <span class="com">#include &lt;stdio.h&gt;</span><br>
+                        <span class="kw">int</span> <span class="fn">main</span>() {<br>
+                        &nbsp;&nbsp;<span class="kw">int</span> <span class="var">a</span> = <span class="num">5</span>, <span class="var">b</span> = <span class="num">3</span>;<br>
+                        &nbsp;&nbsp;<span class="fn">printf</span>(<span class="str">"%d"</span>, <span class="var">a</span> + <span class="var">b</span>);<br>
+                        &nbsp;&nbsp;<span class="kw">return</span> <span class="num">0</span>;<br>
+                        }
+                    </div>
+                    <div class="op-out dim">Output: 8</div>
+                    <ul class="tick-list bad">
+                        <li>&#10007; Complex boilerplate structure</li>
+                        <li>&#10007; Manual type definitions</li>
+                        <li>&#10007; Direct hardware memory control</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: HOW PYTHON RUNS -->
+        <div class="slide" id="slide-3">
+            <div class="slide-head">
+                <div>
+                    <div class="kicker">Interpreter Architecture</div>
+                    <h2>How Python <span class="hl">Runs</span></h2>
+                </div>
+                <span class="badge">CPython Pipeline</span>
+            </div>
+
+            <div class="steps-5">
+                <div class="step-card">
+                    <div class="step-label">Step 01</div>
+                    <div class="step-name">Source Code</div>
+                    <div class="step-sub">script.py</div>
+                </div>
+                <div class="step-card">
+                    <div class="step-label">Step 02</div>
+                    <div class="step-name">Tokenizer</div>
+                    <div class="step-sub">Break Tokens</div>
+                </div>
+                <div class="step-card">
+                    <div class="step-label">Step 03</div>
+                    <div class="step-name">Parser</div>
+                    <div class="step-sub">Build AST Tree</div>
+                </div>
+                <div class="step-card">
+                    <div class="step-label">Step 04</div>
+                    <div class="step-name">Compiler</div>
+                    <div class="step-sub">Bytecode (.pyc)</div>
+                </div>
+                <div class="step-card active">
+                    <div class="step-label">Step 05</div>
+                    <div class="step-name">PVM</div>
+                    <div class="step-sub">Line-by-Line Run</div>
+                </div>
+            </div>
+
+            <div class="cpython-bar">
+                <i class="fa-solid fa-gear"></i>
+                <div>
+                    <strong>CPython Standard Interpreter</strong>
+                    <span>Written in C. Python compiles source code to intermediate bytecode before executing line-by-line via the Python Virtual Machine (PVM).</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: FROM CODE TO OUTPUT -->
+        <div class="slide" id="slide-4">
+            <div class="slide-head">
+                <div>
+                    <div class="kicker">From Code to Output</div>
+                    <h2>Source Code Doesn't <span class="hl">Magically</span> Become a Result</h2>
+                </div>
+                <span class="badge">Language Implementation</span>
+            </div>
+
+            <div class="flow-line">
+                <span>Source Code</span>
+                <i class="fa-solid fa-arrow-right"></i>
+                <span>Language Implementation</span>
+                <i class="fa-solid fa-arrow-right"></i>
+                <span>Execution</span>
+                <i class="fa-solid fa-arrow-right"></i>
+                <span>Output</span>
+            </div>
+
+            <div class="grid-2" style="align-items: stretch;">
+                <div class="col-stack">
+                    <div class="info-card">
+                        <h3>Source Code</h3>
+                        <p>The program written by a human.</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Compiler</h3>
+                        <p>Translates source code into another representation, often machine code or an intermediate representation.</p>
+                    </div>
+                </div>
+                <div class="col-stack">
+                    <div class="info-card">
+                        <h3>Interpreter / Runtime</h3>
+                        <p>Executes a program or its intermediate representation.</p>
+                    </div>
+                    <div class="note-dashed">Real implementations can combine compilation and interpretation; they are not always mutually exclusive.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: COMPILED VS INTERPRETED -->
+        <div class="slide" id="slide-5">
+            <div class="slide-head">
+                <div>
+                    <div class="kicker">Compiled vs Interpreted</div>
+                    <h2>The Answer Is a Little More <span class="hl">Interesting</span></h2>
+                </div>
+                <span class="badge">CPython</span>
+            </div>
+
+            <p class="lead">Python is commonly called interpreted because developers usually run programs through a Python interpreter/runtime instead of compiling a native executable.</p>
+
+            <div class="grid-2" style="align-items: stretch;">
+                <div class="code-panel good">
+                    <div class="panel-head">
+                        <span class="panel-title neon">Standard CPython &middot; Simplified</span>
+                    </div>
+                    <div class="gutter">
+                        <span class="var">Python source (.py)</span><br>
+                        &darr;<br>
+                        <span class="kw">Compilation</span><br>
+                        <span class="com">to Python bytecode</span> &darr;<br>
+                        <span class="fn">Python virtual machine</span><br>
+                        <span class="com">Executes the bytecode</span>
+                    </div>
+                </div>
+                <div class="code-panel">
+                    <p>Source is commonly compiled to bytecode internally. The runtime executes that bytecode; programmers usually don't manage this themselves.</p>
+                    <p class="quote-note">"Interpreted" does not mean "never compiled". Other Python implementations may work differently.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: CONVENTIONAL C WORKFLOW -->
+        <div class="slide" id="slide-6">
+            <div class="slide-head">
+                <div>
+                    <div class="kicker">Conventional C Workflow</div>
+                    <h2>What Changes When We Run a <span class="hl">C Program?</span></h2>
+                </div>
+                <span class="badge">Toolchain</span>
+            </div>
+
+            <div class="flow-box">
+                <div class="flow-chain">C source (.c) &darr; Compiler &darr; Native executable &darr; Operating system runs the executable &darr; Output</div>
+                <div class="flow-note">A conventional toolchain usually compiles and links before running.</div>
+            </div>
+
+            <div class="cmp">
+                <div class="cmp-col">
+                    <div class="cmp-head neon">Python, commonly via CPython</div>
+                    <div class="cmp-row">Typically run through a Python runtime</div>
+                    <div class="cmp-row">Bytecode is executed by the runtime</div>
+                    <div class="cmp-row">Quick interactive experimentation</div>
+                    <div class="cmp-row">Dynamic typing is common</div>
+                </div>
+                <div class="cmp-col">
+                    <div class="cmp-head">C, conventional workflow</div>
+                    <div class="cmp-row">Usually compiled and linked first</div>
+                    <div class="cmp-row">Native machine code is executed</div>
+                    <div class="cmp-row">Compilation catches many errors before execution</div>
+                    <div class="cmp-row">Types are explicitly declared in ordinary C code</div>
+                </div>
+            </div>
+
+            <div class="flow-note">Compilation does not catch every bug, and both languages can be used in more varied workflows.</div>
+        </div>
+
+        <!-- SLIDE 8: QUICK CHECK -->
+        <div class="slide" id="slide-7">
+            <div class="slide-head">
+                <div>
+                    <div class="kicker">Quick Check</div>
+                    <h2>Predict Before You <span class="hl">Reveal</span></h2>
+                </div>
+                <span class="badge">3 Questions</span>
+            </div>
+
+            <div class="qc-panel">
+                <div class="qc-count" id="qcCount">Question 1 / 3</div>
+                <div class="qc-q" id="qcQuestion"></div>
+                <ul class="qc-opts" id="qcOptions"></ul>
+                <div class="qc-answer" id="qcAnswer"></div>
+            </div>
+
+            <div class="qc-actions">
+                <button class="btn-outline" id="qcPrev" onclick="qcNav(-1)"><i class="fa-solid fa-arrow-left"></i> Previous</button>
+                <button class="btn-neon" id="qcReveal" onclick="qcToggle()">Reveal answer</button>
+                <button class="btn-outline" id="qcNext" onclick="qcNav(1)">Next question <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: THE 5 PYTHON TOKENS -->
+        <div class="slide" id="slide-8">
+            <div class="slide-head">
+                <div>
+                    <div class="kicker">Syntax Primitives</div>
+                    <h2>The 5 Python <span class="hl">Tokens</span></h2>
+                </div>
+                <span class="badge">Building Blocks</span>
+            </div>
+
+            <div class="tok-grid">
+                <div class="info-card">
+                    <div class="tok-label">Token 01</div>
+                    <h3>Keywords</h3>
+                    <p>Reserved core syntax words.</p>
+                    <div class="tok-code"><span class="kw">if, else, for, def</span></div>
+                </div>
+                <div class="info-card">
+                    <div class="tok-label">Token 02</div>
+                    <h3>Identifiers</h3>
+                    <p>User-defined variable names.</p>
+                    <div class="tok-code"><span class="var">name, count_1</span></div>
+                </div>
+                <div class="info-card">
+                    <div class="tok-label">Token 03</div>
+                    <h3>Literals</h3>
+                    <p>Fixed raw constant values.</p>
+                    <div class="tok-code"><span class="num">5</span>, <span class="num">3.14</span>, <span class="str">"Arjun"</span></div>
+                </div>
+                <div class="info-card">
+                    <div class="tok-label">Token 04</div>
+                    <h3>Operators</h3>
+                    <p>Computation symbols.</p>
+                    <div class="tok-code"><span class="fn">+, -, *, /, //, %, ==</span></div>
+                </div>
+                <div class="info-card">
+                    <div class="tok-label">Token 05</div>
+                    <h3>Punctuators</h3>
+                    <p>Structure symbols.</p>
+                    <div class="tok-code"><span class="kw">(), [], {}, :, ,</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: TYPE SYSTEM -->
+        <div class="slide" id="slide-9">
+            <div class="tag-badge">CONCEPT 05</div>
+            <h2>Core Data Types</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <table>
+                        <tr><th>Type</th><th>Description</th><th>Example</th></tr>
+                        <tr><td><span class="kw">int</span></td><td>Whole numbers</td><td><span class="num">3, -10</span></td></tr>
+                        <tr><td><span class="kw">float</span></td><td>Decimal values</td><td><span class="num">3.14, 99.5</span></td></tr>
+                        <tr><td><span class="kw">str</span></td><td>Character sequences</td><td><span class="str">"Arjun"</span></td></tr>
+                        <tr><td><span class="kw">bool</span></td><td>Truth conditions</td><td><span class="kw">True, False</span></td></tr>
+                        <tr><td><span class="kw">NoneType</span></td><td>Absence of value</td><td><span class="kw">None</span></td></tr>
+                    </table>
+                </div>
+                <div>
+                    <div class="neon-code-box">
+                        <div class="code-header">
+                            <span style="color:var(--neon); font-weight:bold;">// Inspection Code</span>
+                        </div>
+                        <div class="code-content">
+                            <span class="fn">print</span>(<span class="fn">type</span>(<span class="num">3</span>))<br>
+                            <span class="fn">print</span>(<span class="fn">type</span>(<span class="num">3.14</span>))<br>
+                            <span class="fn">print</span>(<span class="fn">type</span>(<span class="str">"Arjun"</span>))<br>
+                            <span class="fn">print</span>(<span class="fn">type</span>(<span class="kw">True</span>))
+                        </div>
+                        <div style="padding: 0 1rem 1rem 1rem;">
+                            <button class="btn-outline" onclick="toggleOutput('out-types')">RUN CODE</button>
+                            <div class="output-box" id="out-types">
+                                &lt;class 'int'&gt;<br>
+                                &lt;class 'float'&gt;<br>
+                                &lt;class 'str'&gt;<br>
+                                &lt;class 'bool'&gt;
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: ARITHMETIC OPERATIONS -->
+        <div class="slide" id="slide-10">
+            <div class="tag-badge">CONCEPT 06</div>
+            <h2>Arithmetic Operations</h2>
+            
+            <div class="grid-2" style="margin-bottom: 1rem;">
+                <!-- Floor Division -->
+                <div class="window-frame">
+                    <div class="window-header">
+                        <span>Floor Division <code class="kw">//</code></span>
+                        <span class="tag-badge" style="margin:0; border-color:var(--gray-text); color:var(--gray-text);">Built-in</span>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <p class="text-sm">Rounds result <strong>DOWN</strong> to nearest integer.</p>
+                        <div class="code-content" style="padding:0 0 1rem 0;">
+                            <span class="fn">print</span>(<span class="num">3</span> // <span class="num">2</span>)
+                        </div>
+                        <div class="output-box" style="display:block; margin:0;">Output: 1</div>
+                    </div>
+                </div>
+
+                <!-- Ceiling -->
+                <div class="window-frame">
+                    <div class="window-header">
+                        <span>Ceiling Function <code class="fn">math.ceil()</code></span>
+                        <span class="tag-badge" style="margin:0;">Requires Import</span>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <p class="text-sm">Rounds result <strong>UP</strong> to nearest integer.</p>
+                        <div class="code-content" style="padding:0 0 1rem 0;">
+                            <span class="kw">import</span> <span class="var">math</span><br>
+                            <span class="fn">print</span>(<span class="var">math</span>.<span class="fn">ceil</span>(<span class="num">3</span> / <span class="num">2</span>))
+                        </div>
+                        <div class="output-box" style="display:block; margin:0;">Output: 2</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modulo -->
+            <div class="window-frame">
+                <div class="window-header">
+                    <span>Modulo Operator <code class="kw">%</code></span>
+                    <span class="tag-badge" style="margin:0; border-color:var(--gray-text); color:var(--gray-text);">Remainder</span>
+                </div>
+                <div style="padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <p class="text-sm" style="margin:0;">Returns division remainder:</p>
+                    <div>
+                        <code class="text-sm"><span class="num">10</span> % <span class="num">2</span> → <span class="num">0</span> (Even)</code> &nbsp;|&nbsp; 
+                        <code class="text-sm"><span class="num">5</span> % <span class="num">2</span> → <span class="num">1</span> (Odd)</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: SEQUENCE DATA TYPES -->
+        <div class="slide" id="slide-11">
+            <div class="tag-badge">CONCEPT 07</div>
+            <h2>Sequence Data Types</h2>
+            
+            <div class="grid-4" style="margin-top: 1rem;">
+                <!-- List -->
+                <div class="window-frame">
+                    <div class="window-header" style="padding:0.5rem;">
+                        <span class="tag-badge" style="margin:0; font-size:0.6rem;">Mutable</span>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <h3>List []</h3>
+                        <p class="text-sm">Ordered collection.</p>
+                        <div class="code-content" style="padding:0; font-size:0.75rem;">
+                            <span class="var">cart</span> = [<span class="str">"apple"</span>]<br>
+                            <span class="var">cart</span>.<span class="fn">append</span>(<span class="str">"milk"</span>)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tuple -->
+                <div class="window-frame">
+                    <div class="window-header" style="padding:0.5rem;">
+                        <span class="tag-badge" style="margin:0; font-size:0.6rem; border-color:var(--gray-text); color:var(--gray-text);">Immutable</span>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <h3>Tuple ()</h3>
+                        <p class="text-sm">Fixed collection.</p>
+                        <div class="code-content" style="padding:0; font-size:0.75rem;">
+                            <span class="var">date</span> = (<span class="num">26</span>, <span class="num">7</span>, <span class="num">2026</span>)<br>
+                            <span class="var">date</span>[<span class="num">0</span>] = <span class="num">27</span> <span class="err">✗</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Set -->
+                <div class="window-frame">
+                    <div class="window-header" style="padding:0.5rem;">
+                        <span class="tag-badge" style="margin:0; font-size:0.6rem;">Unique</span>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <h3>Set {}</h3>
+                        <p class="text-sm">Unordered, distinct.</p>
+                        <div class="code-content" style="padding:0; font-size:0.75rem;">
+                            <span class="var">s</span> = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">2</span>, <span class="num">1</span>}<br>
+                            <span class="fn">print</span>(<span class="var">s</span>) → {<span class="num">1</span>,<span class="num">2</span>}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dict -->
+                <div class="window-frame">
+                    <div class="window-header" style="padding:0.5rem;">
+                        <span class="tag-badge" style="margin:0; font-size:0.6rem;">Key : Value</span>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <h3>Dict {}</h3>
+                        <p class="text-sm">Key-value mappings.</p>
+                        <div class="code-content" style="padding:0; font-size:0.75rem;">
+                            <span class="var">usr</span> = {<span class="str">"age"</span>: <span class="num">20</span>}<br>
+                            <span class="fn">print</span>(<span class="var">usr</span>[<span class="str">"age"</span>])
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: STRING MANIPULATION -->
+        <div class="slide" id="slide-12">
+            <div class="tag-badge">CONCEPT 08</div>
+            <h2>String Manipulation</h2>
+            <p>Positioning: Indexing & Slicing</p>
+            
+            <div class="window-frame" style="padding: 2rem; text-align: center; background: var(--black);">
+                <div style="font-size: 0.8rem; color: var(--gray-text); text-align:left; margin-bottom:1rem;">NAME = "ARJUN"</div>
+                <div style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 2rem;">
+                    <div style="border: 1px solid var(--border); padding: 1rem 2rem; position: relative;">
+                        <div style="position:absolute; top:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--gray-text);">+0</div>
+                        <div style="font-size: 2rem; color: var(--neon);">A</div>
+                        <div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--error);">-5</div>
+                    </div>
+                    <div style="border: 1px solid var(--border); padding: 1rem 2rem; position: relative;">
+                        <div style="position:absolute; top:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--gray-text);">+1</div>
+                        <div style="font-size: 2rem; color: var(--white);">r</div>
+                        <div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--error);">-4</div>
+                    </div>
+                    <div style="border: 1px solid var(--border); padding: 1rem 2rem; position: relative;">
+                        <div style="position:absolute; top:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--gray-text);">+2</div>
+                        <div style="font-size: 2rem; color: var(--white);">j</div>
+                        <div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--error);">-3</div>
+                    </div>
+                    <div style="border: 1px solid var(--border); padding: 1rem 2rem; position: relative;">
+                        <div style="position:absolute; top:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--gray-text);">+3</div>
+                        <div style="font-size: 2rem; color: var(--white);">u</div>
+                        <div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--error);">-2</div>
+                    </div>
+                    <div style="border: 1px solid var(--border); padding: 1rem 2rem; position: relative;">
+                        <div style="position:absolute; top:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--gray-text);">+4</div>
+                        <div style="font-size: 2rem; color: var(--neon);">n</div>
+                        <div style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:var(--error);">-1</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-3" style="margin-top: 1rem;">
+                <div class="border-l-2 border-brand-neon pl-3 py-1" style="border-left: 2px solid var(--neon); padding-left: 1rem;">
+                    <code style="color:var(--neon); font-size:0.9rem;">name[0:2]</code> → <span class="str">"Ar"</span><br>
+                    <span class="text-sm" style="color:var(--gray-text);">Start 0 up to 2 (excluded)</span>
+                </div>
+                <div class="border-l-2 border-brand-neon pl-3 py-1" style="border-left: 2px solid var(--neon); padding-left: 1rem;">
+                    <code style="color:var(--neon); font-size:0.9rem;">name[1:]</code> → <span class="str">"rjun"</span><br>
+                    <span class="text-sm" style="color:var(--gray-text);">Index 1 to end</span>
+                </div>
+                <div class="border-l-2 border-brand-neon pl-3 py-1" style="border-left: 2px solid var(--neon); padding-left: 1rem;">
+                    <code style="color:var(--neon); font-size:0.9rem;">name[-1]</code> → <span class="str">"n"</span><br>
+                    <span class="text-sm" style="color:var(--gray-text);">Last character</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: I/O PATTERNS -->
+        <div class="slide" id="slide-13">
+            <div class="tag-badge">CONCEPT 09</div>
+            <h2>I/O Patterns</h2>
+            
+            <div class="grid-2">
+                <!-- Common Bug -->
+                <div class="window-frame" style="border-color: var(--error);">
+                    <div class="window-header" style="color: var(--error);">
+                        <span><i class="fa-solid fa-bug"></i> Common Bug</span>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <p class="text-sm" style="color: var(--white);">input() always returns <strong>STR</strong></p>
+                        <div class="code-content" style="padding:0; font-size:0.8rem;">
+                            <span class="var">num</span> = <span class="fn">input</span>(<span class="str">"Enter number: "</span>) <span class="com"># '10'</span><br>
+                            <span class="fn">print</span>(<span class="var">num</span> + <span class="num">10</span>)
+                        </div>
+                        <div class="output-box error-box" style="display:block; margin: 1rem 0 0 0;">
+                            TypeError: can only concatenate str (not "int") to str
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Correct Approach -->
+                <div class="window-frame" style="border-color: var(--success);">
+                    <div class="window-header" style="color: var(--success);">
+                        <span><i class="fa-solid fa-check"></i> Correct Approach</span>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <p class="text-sm" style="color: var(--white);">Explicit <code>int()</code> Casting</p>
+                        <div class="code-content" style="padding:0; font-size:0.8rem;">
+                            <span class="var">num</span> = <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Enter number: "</span>))<br>
+                            <span class="fn">print</span>(<span class="str">f"Result: {<span class="var">num</span> + <span class="num">10</span>}"</span>)
+                        </div>
+                        <div class="output-box" style="display:block; margin: 1rem 0 0 0; border-left-color: var(--success); color: var(--success);">
+                            Enter number: 10<br>Result: 20
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: IF-ELSE & INDENTATION -->
+        <div class="slide" id="slide-14">
+            <div class="tag-badge">CONCEPT 10</div>
+            <h2>If-Else & Indentation</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <div class="neon-code-box">
+                        <div class="code-header">
+                            <span style="color:var(--neon); font-weight:bold;">// Indentation Block</span>
+                            <span style="color:var(--gray-text); font-size:10px;">4 Spaces</span>
+                        </div>
+                        <div class="code-content">
+                            <span class="var">num</span> = <span class="fn">int</span>(<span class="fn">input</span>(<span class="str">"Number: "</span>))<br>
+                            <span class="kw">if</span> <span class="var">num</span> &gt;= <span class="num">0</span>:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"Positive"</span>) <span class="com"># Indented 4 spaces</span><br>
+                            <span class="kw">elif</span> <span class="var">num</span> == <span class="num">0</span>:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"Zero"</span>)<br>
+                            <span class="kw">else</span>:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"Negative"</span>)
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="window-frame" style="border-color: var(--error); height: 100%;">
+                        <div class="window-header" style="color: var(--error);">
+                            <span><i class="fa-solid fa-triangle-exclamation"></i> Indentation Error</span>
+                        </div>
+                        <div style="padding: 1rem; display: flex; flex-direction: column; height: calc(100% - 40px);">
+                            <p class="text-sm" style="color: var(--white); margin-bottom: 1rem;">Python does not use curly braces <code>{}</code> for code blocks. Scope is strictly defined by whitespace!</p>
+                            
+                            <div class="code-content" style="padding:0; font-size:0.8rem; margin-bottom: auto;">
+                                <span class="kw">if</span> <span class="var">num</span> &gt;= <span class="num">0</span>:<br>
+                                <span class="fn">print</span>(<span class="str">"positive"</span>) <span class="err"># - - IndentationError!</span>
+                            </div>
+                            <div class="output-box error-box" style="display:block; margin: 1rem 0 0 0;">
+                                IndentationError: expected an indented block
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: DAY 1 COMPLETE -->
+        <div class="slide" id="slide-15">
+            <div class="tag-badge">DAY 1 COMPLETE</div>
+            <h2>Ready for Loops & Logic?</h2>
+            
+            <div class="window-frame" style="padding: 3rem; text-align: center; border-color: var(--neon);">
+                <i class="fa-solid fa-terminal" style="font-size: 3rem; color: var(--neon); margin-bottom: 1.5rem;"></i>
+                <p style="font-size: 1.2rem; color: var(--white); font-style: italic; line-height: 1.8;">
+                    "Python is simple to write, but knowing how it works under the hood is what separates coders from programmers."
+                </p>
+            </div>
+        </div>
+
+        <!-- SLIDE 17: QUIZ 1 -->
+        <div class="slide" id="slide-16">
+            <div class="tag-badge">QUIZ 01</div>
+            <h2>Knowledge Check</h2>
+            
+            <div class="window-frame" style="max-width: 800px; margin-top: 1rem;">
+                <div class="window-header">
+                    <span><i class="fa-solid fa-circle-question text-neon"></i> Question 1</span>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <p style="font-size: 1.1rem; color: var(--white); margin-bottom: 1rem;">What will be the output of <code>print(type("a"))</code>?</p>
+                    
+                    <div class="quiz-option" onclick="checkAnswer(this, false, 'q1-feedback')">
+                        <i class="fa-regular fa-circle"></i> &lt;class 'char'&gt;
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true, 'q1-feedback')">
+                        <i class="fa-regular fa-circle"></i> &lt;class 'str'&gt;
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false, 'q1-feedback')">
+                        <i class="fa-regular fa-circle"></i> &lt;class 'int'&gt;
+                    </div>
+                    
+                    <div class="feedback" id="q1-feedback"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: QUIZ 2 -->
+        <div class="slide" id="slide-17">
+            <div class="tag-badge">QUIZ 02</div>
+            <h2>Knowledge Check</h2>
+            
+            <div class="window-frame" style="max-width: 800px; margin-top: 1rem;">
+                <div class="window-header">
+                    <span><i class="fa-solid fa-circle-question text-neon"></i> Question 2</span>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <p style="font-size: 1.1rem; color: var(--white); margin-bottom: 1rem;">Which of these is the correct way to take integer input from a user?</p>
+                    
+                    <div class="quiz-option" onclick="checkAnswer(this, false, 'q2-feedback')">
+                        <i class="fa-regular fa-circle"></i> <code>num = input("Enter: ")</code>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true, 'q2-feedback')">
+                        <i class="fa-regular fa-circle"></i> <code>num = int(input("Enter: "))</code>
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false, 'q2-feedback')">
+                        <i class="fa-regular fa-circle"></i> <code>num = input(int("Enter: "))</code>
+                    </div>
+                    
+                    <div class="feedback" id="q2-feedback"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 19: QUIZ 3 -->
+        <div class="slide" id="slide-18">
+            <div class="tag-badge">QUIZ 03</div>
+            <h2>Knowledge Check</h2>
+            
+            <div class="window-frame" style="max-width: 800px; margin-top: 1rem;">
+                <div class="window-header">
+                    <span><i class="fa-solid fa-circle-question text-neon"></i> Question 3</span>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <p style="font-size: 1.1rem; color: var(--white); margin-bottom: 1rem;">What is the result of <code>name = "Arjun"; print(name[1:4])</code>?</p>
+                    
+                    <div class="quiz-option" onclick="checkAnswer(this, false, 'q3-feedback')">
+                        <i class="fa-regular fa-circle"></i> Arj
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true, 'q3-feedback')">
+                        <i class="fa-regular fa-circle"></i> rju
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false, 'q3-feedback')">
+                        <i class="fa-regular fa-circle"></i> rjun
+                    </div>
+                    
+                    <div class="feedback" id="q3-feedback"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 20: SUMMARY / CHECKLIST -->
+        <div class="slide" id="slide-19">
+            <div class="tag-badge">SUMMARY</div>
+            <h2>Day 1 Checklist</h2>
+            
+            <div class="grid-2" style="margin-top: 1rem;">
+                <div>
+                    <ul style="list-style-type: none; padding-left: 0;">
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Explain Programming vs Coding</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Describe how Python runs under the hood</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Create and run code in Google Colab</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Name all 5 token types</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Use core data types and `type()`</li>
+                    </ul>
+                </div>
+                <div>
+                    <ul style="list-style-type: none; padding-left: 0;">
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Use arithmetic, `/`, `//`, `%`, and `math.ceil()`</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Manipulate lists, tuples, sets, and dicts</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Index and slice strings (positive/negative)</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Take input, cast it, and use f-strings</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fa-solid fa-square-check" style="color: var(--neon); margin-right: 0.5rem;"></i> Write `if-elif-else` with correct indentation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1.6rem; border-top: 1px solid #2A2A2A; padding-top: 1.2rem;">
+                <span style="font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--neon); font-family: var(--font-heading);">Detailed notes &amp; code</span>
+                <a class="btn-neon" href="https://app.notion.com/p/Syntax-to-Solutions-3-Day-Python-Study-Jam-3fb1cc65a7b680b38949d675bdc79708?showMoveTo=true&saveParent=true" target="_blank" rel="noopener" style="text-decoration: none;">
+                    <i class="fa-solid fa-book-open"></i> Day 1 notes on Notion
+                </a>
+            </div>
+
+            <div class="border-l-2 border-brand-neon pl-3 py-1 text-xs text-gray-400" style="border-left: 2px solid var(--neon); padding-left: 1rem; color: var(--gray-text); margin-top: 1.6rem; font-size: 1.1rem;">
+                Next session (Day 2): Problem-solving mindset — breaking problems into steps, algorithm building, trial & error, and loops. Bring your Colab notebooks with today's practice done!
+            </div>
+        </div>
+
+    </div>
+
+    <!-- NAVIGATION FOOTER -->
+    <div class="nav-controls">
+        <button class="btn-outline" onclick="prevSlide()"><i class="fa-solid fa-arrow-left"></i> PREV</button>
+        <div class="nav-dots" id="dotsContainer"></div>
+        <button class="btn-outline" onclick="nextSlide()">NEXT <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+
+    <script>
+        // --- SLIDE LOGIC ---
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const progressBar = document.getElementById('progressBar');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        // Create dots
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = `dot ${i === 0 ? 'active' : ''}`;
+            dot.onclick = () => goToSlide(i);
+            dotsContainer.appendChild(dot);
+        }
+
+        // Reference-style rule at the foot of every slide
+        slides.forEach(slide => {
+            const foot = document.createElement('div');
+            foot.className = 'slide-foot';
+            foot.innerHTML = '<span>PYTHON STUDY JAM &mdash; DAY 1</span><span class="foot-page"></span>';
+            slide.appendChild(foot);
+        });
+
+        function updateUI() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+            
+            // Update progress bar
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Update dots
+            document.querySelectorAll('.dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+
+            // Update slide footer page number
+            const footPage = slides[currentSlide].querySelector('.foot-page');
+            if (footPage) {
+                footPage.textContent = `${String(currentSlide + 1).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateUI();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateUI();
+            }
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateUI();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+            if (e.key === 'Home') goToSlide(0);
+            if (e.key === 'End') goToSlide(totalSlides - 1);
+        });
+
+        // --- INTERACTIVITY ---
+        
+        // Toggle Code Output
+        function toggleOutput(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+
+        // Quiz Logic
+        function checkAnswer(element, isCorrect, feedbackId) {
+            // Find the parent container
+            const container = element.parentElement;
+            
+            // Disable all options
+            const options = container.querySelectorAll('.quiz-option');
+            options.forEach(opt => {
+                if (opt !== element) {
+                    opt.classList.add('disabled');
+                }
+            });
+
+            // Mark selected option
+            if (isCorrect) {
+                element.classList.add('correct');
+                element.innerHTML = `<i class="fa-solid fa-circle-check"></i> ` + element.innerHTML.replace('<i class="fa-regular fa-circle"></i> ', '');
+            } else {
+                element.classList.add('incorrect');
+                element.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ` + element.innerHTML.replace('<i class="fa-regular fa-circle"></i> ', '');
+            }
+
+            // Show feedback
+            const feedbackEl = document.getElementById(feedbackId);
+            feedbackEl.style.display = 'block';
+            if (isCorrect) {
+                feedbackEl.className = 'feedback success';
+                feedbackEl.innerHTML = '<strong>Correct!</strong> Great job.';
+            } else {
+                feedbackEl.className = 'feedback error';
+                feedbackEl.innerHTML = '<strong>Incorrect.</strong> Review the notes and try again on the next run.';
+            }
+        }
+
+        // --- PIXEL SNAKE (title slide) ---
+        (function buildSnake() {
+            const grid = document.getElementById('snakeGrid');
+            if (!grid) return;
+
+            // Row map: '.' empty, 'o' body, 'H' head.
+            const rows = [
+                '...........',
+                '........ooH',
+                '........o..',
+                '........o..',
+                '........o..',
+                '.oooooooo..',
+                '.o.........',
+                '...........'
+            ];
+
+            const key = (c, r) => c + ':' + r;
+            const segs = [];
+            rows.forEach((row, r) => row.split('').forEach((ch, c) => {
+                if (ch === 'o' || ch === 'H') segs.push({ c, r, head: ch === 'H', d: -1 });
+            }));
+
+            // Walk the body out from the head so each segment can fade as it travels.
+            const lookup = {};
+            segs.forEach(seg => { lookup[key(seg.c, seg.r)] = seg; });
+            const head = segs.find(seg => seg.head);
+            head.d = 0;
+            const queue = [head];
+            while (queue.length) {
+                const cur = queue.shift();
+                [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(delta => {
+                    const next = lookup[key(cur.c + delta[0], cur.r + delta[1])];
+                    if (next && next.d === -1) { next.d = cur.d + 1; queue.push(next); }
+                });
+            }
+
+            // Every map position gets a cell so the rows stay aligned.
+            rows.forEach((row, r) => row.split('').forEach((ch, c) => {
+                const el = document.createElement('div');
+                el.className = 'snake-cell';
+                const seg = lookup[key(c, r)];
+                if (seg) {
+                    el.classList.add('on');
+                    if (seg.head) el.classList.add('is-head');
+                    el.style.opacity = Math.max(0.3, 1 - seg.d * 0.055).toFixed(2);
+                }
+                grid.appendChild(el);
+            }));
+        })();
+
+        // --- QUICK CHECK (predict before you reveal) ---
+        const quickCheck = [
+            {
+                q: 'Which is a high-level language?',
+                options: ['Python', 'Machine code', 'Binary instructions'],
+                letter: 'A',
+                why: 'Python reads close to human language — the interpreter/runtime handles the machine-level details for you.'
+            },
+            {
+                q: 'Does CPython typically execute .py source directly without any compilation step?',
+                options: ['Yes, always', 'No, it typically compiles source into bytecode first'],
+                letter: 'B',
+                why: 'Source is commonly compiled to bytecode internally; the runtime executes that bytecode.'
+            },
+            {
+                q: 'Which statement is more accurate?',
+                options: ['Python is never compiled.', 'Python implementations can involve compilation and runtime execution.'],
+                letter: 'B',
+                why: '"Interpreted" does not mean "never compiled". Other Python implementations may work differently.'
+            }
+        ];
+        let qcIndex = 0;
+        let qcShown = false;
+
+        function qcRender() {
+            const item = quickCheck[qcIndex];
+
+            document.getElementById('qcCount').textContent = `Question ${qcIndex + 1} / ${quickCheck.length}`;
+            document.getElementById('qcQuestion').textContent = item.q;
+
+            const list = document.getElementById('qcOptions');
+            list.innerHTML = '';
+            item.options.forEach(opt => {
+                const li = document.createElement('li');
+                li.textContent = opt;
+                list.appendChild(li);
+            });
+
+            const answer = document.getElementById('qcAnswer');
+            answer.classList.toggle('shown', qcShown);
+            answer.innerHTML = qcShown ? `<span class="qc-letter">${item.letter}.</span> ${item.why}` : '';
+
+            document.getElementById('qcReveal').textContent = qcShown ? 'Hide answer' : 'Reveal answer';
+            document.getElementById('qcPrev').disabled = qcIndex === 0;
+            document.getElementById('qcNext').disabled = qcIndex === quickCheck.length - 1;
+        }
+
+        function qcNav(step) {
+            const next = qcIndex + step;
+            if (next < 0 || next >= quickCheck.length) return;
+            qcIndex = next;
+            qcShown = false;
+            qcRender();
+        }
+
+        function qcToggle() {
+            qcShown = !qcShown;
+            qcRender();
+        }
+
+        qcRender();
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>
