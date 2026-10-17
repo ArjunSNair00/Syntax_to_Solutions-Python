@@ -3,4 +3,7 @@
 # Syntax to Solutions
 
 Syntax to Solutions - 
-a three-day Python study jam: Day 1 online fundamentals, Day 2 online logic and problem solving, Day 3 offline build and collaborate
+a three-day Python study jam: 
+- Day 1 online fundamentals,
+- Day 2 online logic and problem solving,
+- Day 3 offline build and collaborate
